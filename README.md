@@ -76,3 +76,20 @@ PRODUCTION AUTHORIZATION = NOT AUTHORIZED
 
 **Architecture Before Implementation.**  
 **Evidence Before Claims.**
+
+## 10 Security Nano Core Agents
+
+1. [SENTINEL](agents/01-SENTINEL.md)
+2. [VULCAN](agents/02-VULCAN.md)
+3. [CERBERUS](agents/03-CERBERUS.md)
+4. [AEGIS](agents/04-AEGIS.md)
+5. [BASTION](agents/05-BASTION.md)
+6. [ARGUS](agents/06-ARGUS.md)
+7. [MINERVA](agents/07-MINERVA.md)
+8. [FORENSIC](agents/08-FORENSIC.md)
+9. [REDSHIELD](agents/09-REDSHIELD.md)
+10. [GUARDIAN-SEC](agents/10-GUARDIAN-SEC.md)
+
+[Security NCA Fleet Index](agents/README.md)
+
+CYBER HAK uses ten specialized Security Nano Core Agents governed by SECURITY-ORCHESTRATOR-01 under HANTER authority.
