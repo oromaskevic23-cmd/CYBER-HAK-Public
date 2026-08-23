@@ -2105,4 +2105,469 @@ PUBLIC-MANIFEST.json — ADD
 "live_dlp_enforcement": "NOT_VERIFIED",
 "live_key_management": "NOT_VERIFIED",
 "production_data_protection_enforcement": "NOT_VERIFIED"
+CREATE:
+
+docs/RESILIENCE-SECURITY.md
+docs/BACKUP-RECOVERY-SECURITY.md
+registry/RESILIENCE-CONTROLS.json
+
+UPDATE:
+
+README.md
+PUBLIC-MANIFEST.json
+
+========================================
+docs/RESILIENCE-SECURITY.md
+========================================
+
+# CYBER HAK Resilience Security
+
+CYBER HAK defines a governed defensive model for maintaining security, integrity and recoverability during faults, incidents, outages and degraded operating conditions.
+
+Classification: PUBLIC
+
+This document defines architecture and verification requirements only.
+
+LIVE PRODUCTION RESILIENCE ENFORCEMENT = NOT_VERIFIED
+PRODUCTION AUTHORIZATION = NOT_AUTHORIZED
+
+## Core Principles
+
+- Failure Must Be Detectable
+- Degraded State Must Be Explicit
+- Recovery Must Preserve Governance
+- Availability Does Not Override Authorization
+- Recovery Does Not Override Classification
+- Backup Does Not Equal Recovery
+- Restore Does Not Equal Verification
+- Unknown Recovery State Is Not Pass
+- Evidence Before Recovery Claims
+- Security Controls Must Survive Degraded Operation
+
+## Resilience Lifecycle
+
+OBSERVE
+→ DETECT FAILURE
+→ CLASSIFY IMPACT
+→ CONTAIN
+→ PRESERVE EVIDENCE
+→ ENTER GOVERNED DEGRADED STATE
+→ RECOVER
+→ VERIFY
+→ RESTORE SERVICE
+→ RECORD
+→ REVIEW
+
+## Resilience Control Domains
+
+### RS-01 — Failure Detection
+
+Objective:
+Detect material failures affecting security, governance or service integrity.
+
+Expected evidence:
+health state, timestamps, affected component identity and failure classification.
+
+Failure condition:
+critical failure is not detected or cannot be attributed.
+
+Default response:
+RECORD → ESCALATE_FOR_AUTHORIZED_REVIEW
+
+### RS-02 — Degraded-State Integrity
+
+Objective:
+Ensure degraded operation remains explicit and governed.
+
+Expected evidence:
+degraded-state identifier, affected capabilities and policy restrictions.
+
+Failure condition:
+system operates in degraded mode without declared restrictions.
+
+Default response:
+RESTRICT → RECORD → ESCALATE_FOR_AUTHORIZED_REVIEW
+
+### RS-03 — Governance Continuity
+
+Objective:
+Preserve authorization and policy controls during recovery.
+
+Expected evidence:
+AI Passport state, Guardian Core decisions, Approval Gateway state and Audit Ledger continuity.
+
+Failure condition:
+recovery path bypasses required governance.
+
+Default response:
+DENY_RECOVERY_ACTION → RECORD → ESCALATE_FOR_AUTHORIZED_REVIEW
+
+### RS-04 — Runtime Isolation During Failure
+
+Objective:
+Prevent failure propagation across Runtime Domains.
+
+Expected evidence:
+domain identity, isolation state and containment evidence.
+
+Failure condition:
+failure expands across unauthorized boundaries.
+
+Default response:
+ISOLATE → RECORD → ESCALATE_FOR_AUTHORIZED_REVIEW
+
+### RS-05 — Security Control Continuity
+
+Objective:
+Maintain essential security controls during degraded operation.
+
+Expected evidence:
+control availability and assurance state.
+
+Failure condition:
+critical security controls silently disappear while service remains active.
+
+Default response:
+FAIL_CLOSED_WHERE_REQUIRED → RECORD → ESCALATE_FOR_AUTHORIZED_REVIEW
+
+### RS-06 — Recovery Authorization
+
+Objective:
+Ensure recovery actions requiring privilege are explicitly authorized.
+
+Expected evidence:
+approval decision, scope, target identity and recovery action reference.
+
+Failure condition:
+privileged recovery executes without authorization.
+
+Default response:
+DENY → RECORD → ESCALATE_FOR_AUTHORIZED_REVIEW
+
+### RS-07 — Recovery Integrity
+
+Objective:
+Verify recovered state is attributable and integrity-protected.
+
+Expected evidence:
+source snapshot identity, hashes, provenance and restore evidence.
+
+Failure condition:
+restored state cannot be verified.
+
+Default response:
+MARK_UNVERIFIED → DENY_PROMOTION → RECORD → ESCALATE_FOR_AUTHORIZED_REVIEW
+
+### RS-08 — Recovery Validation
+
+Objective:
+Verify security posture after restoration.
+
+Expected evidence:
+control checks, configuration comparison and post-recovery validation.
+
+Failure condition:
+service is promoted before verification completes.
+
+Default response:
+DENY_PROMOTION → RECORD → ESCALATE_FOR_AUTHORIZED_REVIEW
+
+### RS-09 — Dependency Recovery Integrity
+
+Objective:
+Ensure recovered dependencies remain known and governed.
+
+Expected evidence:
+dependency identity, version, provenance and integrity state.
+
+Failure condition:
+recovery introduces unknown or unverified dependencies.
+
+Default response:
+DENY_PROMOTION → RECORD → ESCALATE_FOR_AUTHORIZED_REVIEW
+
+### RS-10 — Audit Continuity
+
+Objective:
+Preserve event and decision traceability across outage and recovery.
+
+Expected evidence:
+event continuity, recovery identifiers, timestamps and audit references.
+
+Failure condition:
+material recovery actions are not traceable.
+
+Default response:
+FAIL → RECORD → ESCALATE_FOR_AUTHORIZED_REVIEW
+
+### RS-11 — Recovery Scope Control
+
+Objective:
+Prevent recovery from expanding authority or target scope.
+
+Expected evidence:
+approved recovery scope and affected resource identifiers.
+
+Failure condition:
+recovery affects resources outside approved scope.
+
+Default response:
+DENY_OR_REDUCE_SCOPE → RECORD → ESCALATE_FOR_AUTHORIZED_REVIEW
+
+### RS-12 — Post-Recovery Assurance
+
+Objective:
+Require final security assurance before declaring recovery complete.
+
+Expected evidence:
+PASS/WARN/FAIL/UNKNOWN assurance states and evidence references.
+
+Failure condition:
+recovery is declared complete with FAIL or unresolved UNKNOWN state where evidence is mandatory.
+
+Default response:
+DO_NOT_CLOSE → RECORD → ESCALATE_FOR_AUTHORIZED_REVIEW
+
+## Recovery Truth Boundary
+
+RECOVERED != VERIFIED
+
+RESTORED != AUTHORIZED
+
+AVAILABLE != SECURE
+
+UNKNOWN != PASS
+
+## Truth Boundary
+
+PUBLIC RESILIENCE MODEL = DEFINED
+
+LIVE FAILOVER = NOT_VERIFIED
+
+LIVE DISASTER RECOVERY = NOT_VERIFIED
+
+LIVE HIGH AVAILABILITY = NOT_VERIFIED
+
+PRODUCTION RESILIENCE ENFORCEMENT = NOT_VERIFIED
+
+PRODUCTION AUTHORIZATION = NOT_AUTHORIZED
+
+
+========================================
+docs/BACKUP-RECOVERY-SECURITY.md
+========================================
+
+# CYBER HAK Backup & Recovery Security
+
+CYBER HAK defines a governed defensive model for backup creation, protection, retention, restoration and verification.
+
+Classification: PUBLIC
+
+## Permanent Laws
+
+BACKUP != RECOVERY
+
+RECOVERY != VERIFICATION
+
+COPY != TRUSTED BACKUP
+
+RESTORE != SAFE STATE
+
+ENCRYPTED != AUTHORIZED
+
+UNKNOWN BACKUP INTEGRITY != PASS
+
+## Backup Lifecycle
+
+IDENTIFY
+→ CLASSIFY
+→ AUTHORIZE
+→ CREATE
+→ PROTECT
+→ HASH
+→ RECORD
+→ RETAIN
+→ TEST
+→ RESTORE
+→ VERIFY
+→ RETIRE
+
+## Backup Controls
+
+### BR-01 — Backup Scope Governance
+
+Objective:
+Ensure only approved data and systems enter backup scope.
+
+### BR-02 — Backup Classification
+
+Objective:
+Preserve classification requirements in backup copies.
+
+### BR-03 — Backup Access Control
+
+Objective:
+Restrict backup access through governed identity and authorization.
+
+### BR-04 — Backup Integrity
+
+Objective:
+Detect corruption or unauthorized modification.
+
+Expected evidence:
+hashes, timestamps, source identity and backup identifier.
+
+### BR-05 — Backup Confidentiality
+
+Objective:
+Protect sensitive backups according to classification.
+
+### BR-06 — Backup Provenance
+
+Objective:
+Bind backup artifacts to known source systems and creation events.
+
+### BR-07 — Backup Retention
+
+Objective:
+Apply governed retention and expiration policy.
+
+### BR-08 — Backup Isolation
+
+Objective:
+Reduce correlated compromise risk between active systems and recovery material.
+
+### BR-09 — Restore Authorization
+
+Objective:
+Require explicit authorization for privileged restoration operations.
+
+### BR-10 — Restore Integrity
+
+Objective:
+Verify restored bytes and configuration against expected evidence.
+
+### BR-11 — Restore Validation
+
+Objective:
+Validate recovered security posture before promotion.
+
+### BR-12 — Recovery Evidence
+
+Objective:
+Record restoration source, scope, result and verification state.
+
+## Restore Decision
+
+SELECT BACKUP
+→ VERIFY IDENTITY
+→ VERIFY INTEGRITY
+→ VERIFY AUTHORIZATION
+→ RESTORE IN BOUNDED SCOPE
+→ VALIDATE SECURITY STATE
+→ RECORD EVIDENCE
+→ PROMOTE OR DENY
+
+## Public Safety Boundary
+
+This repository must not publish:
+
+- real backup locations
+- private storage endpoints
+- recovery credentials
+- encryption keys
+- private infrastructure maps
+- production disaster-recovery topology
+- sensitive recovery artifacts
+
+## Truth Boundary
+
+PUBLIC BACKUP MODEL = DEFINED
+
+LIVE BACKUP SERVICE = NOT_VERIFIED
+
+LIVE RESTORE PIPELINE = NOT_VERIFIED
+
+LIVE DISASTER-RECOVERY TESTING = NOT_VERIFIED
+
+PRODUCTION RECOVERY AUTHORIZATION = NOT_AUTHORIZED
+
+
+========================================
+registry/RESILIENCE-CONTROLS.json
+========================================
+
+{
+  "registry": "CYBER HAK Resilience Controls",
+  "classification": "PUBLIC",
+  "version": "1.0.0",
+  "total_resilience_controls": 12,
+  "total_backup_controls": 12,
+  "default_policy": "DENY",
+  "unknown_recovery_state_is_pass": false,
+  "backup_equals_recovery": false,
+  "restore_equals_verification": false,
+  "production_resilience_enforcement": "NOT_VERIFIED",
+  "resilience_controls": [
+    {"id":"RS-01","name":"Failure Detection","default_response":"RECORD_ESCALATE"},
+    {"id":"RS-02","name":"Degraded-State Integrity","default_response":"RESTRICT_RECORD_ESCALATE"},
+    {"id":"RS-03","name":"Governance Continuity","default_response":"DENY_RECOVERY_RECORD_ESCALATE"},
+    {"id":"RS-04","name":"Runtime Isolation During Failure","default_response":"ISOLATE_RECORD_ESCALATE"},
+    {"id":"RS-05","name":"Security Control Continuity","default_response":"FAIL_CLOSED_RECORD_ESCALATE"},
+    {"id":"RS-06","name":"Recovery Authorization","default_response":"DENY_RECORD_ESCALATE"},
+    {"id":"RS-07","name":"Recovery Integrity","default_response":"MARK_UNVERIFIED_DENY_PROMOTION_RECORD_ESCALATE"},
+    {"id":"RS-08","name":"Recovery Validation","default_response":"DENY_PROMOTION_RECORD_ESCALATE"},
+    {"id":"RS-09","name":"Dependency Recovery Integrity","default_response":"DENY_PROMOTION_RECORD_ESCALATE"},
+    {"id":"RS-10","name":"Audit Continuity","default_response":"FAIL_RECORD_ESCALATE"},
+    {"id":"RS-11","name":"Recovery Scope Control","default_response":"DENY_OR_REDUCE_SCOPE_RECORD_ESCALATE"},
+    {"id":"RS-12","name":"Post-Recovery Assurance","default_response":"DO_NOT_CLOSE_RECORD_ESCALATE"}
+  ],
+  "backup_controls": [
+    {"id":"BR-01","name":"Backup Scope Governance"},
+    {"id":"BR-02","name":"Backup Classification"},
+    {"id":"BR-03","name":"Backup Access Control"},
+    {"id":"BR-04","name":"Backup Integrity"},
+    {"id":"BR-05","name":"Backup Confidentiality"},
+    {"id":"BR-06","name":"Backup Provenance"},
+    {"id":"BR-07","name":"Backup Retention"},
+    {"id":"BR-08","name":"Backup Isolation"},
+    {"id":"BR-09","name":"Restore Authorization"},
+    {"id":"BR-10","name":"Restore Integrity"},
+    {"id":"BR-11","name":"Restore Validation"},
+    {"id":"BR-12","name":"Recovery Evidence"}
+  ]
+}
+
+
+========================================
+README.md — ADD
+========================================
+
+## Resilience, Backup & Recovery Security
+
+CYBER HAK defines governed resilience and recovery controls for degraded-state integrity, backup protection, bounded restoration and post-recovery verification.
+
+- [Resilience Security](docs/RESILIENCE-SECURITY.md)
+- [Backup & Recovery Security](docs/BACKUP-RECOVERY-SECURITY.md)
+- [Resilience Controls JSON](registry/RESILIENCE-CONTROLS.json)
+
+BACKUP != RECOVERY
+
+RESTORE != VERIFICATION
+
+
+========================================
+PUBLIC-MANIFEST.json — ADD
+========================================
+
+"resilience_security": "DEFINED",
+"backup_recovery_security": "DEFINED",
+"resilience_controls": 12,
+"backup_controls": 12,
+"unknown_recovery_state_is_pass": false,
+"backup_equals_recovery": false,
+"restore_equals_verification": false,
+"live_failover": "NOT_VERIFIED",
+"live_disaster_recovery": "NOT_VERIFIED",
+"production_resilience_enforcement": "NOT_VERIFIED"
 
