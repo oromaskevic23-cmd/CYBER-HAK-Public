@@ -1525,4 +1525,584 @@ PUBLIC-MANIFEST.json — ADD
 "live_dependency_enforcement": "NOT_VERIFIED",
 "live_build_provenance_pipeline": "NOT_VERIFIED",
 "production_supply_chain_enforcement": "NOT_VERIFIED"
+CREATE:
+
+docs/DATA-PROTECTION.md
+docs/SECRETS-SECURITY.md
+registry/DATA-PROTECTION-CONTROLS.json
+
+UPDATE:
+
+README.md
+PUBLIC-MANIFEST.json
+
+========================================
+docs/DATA-PROTECTION.md
+========================================
+
+# CYBER HAK Data Protection
+
+CYBER HAK defines a governed defensive model for protecting information across classification, storage, processing, transmission, retention and authorized disclosure boundaries.
+
+Classification: PUBLIC
+
+This document defines architecture and verification requirements only.
+
+LIVE PRODUCTION DATA-PROTECTION ENFORCEMENT = NOT_VERIFIED
+PRODUCTION AUTHORIZATION = NOT_AUTHORIZED
+
+## Core Principles
+
+- Data Classification Before Access
+- Least Privilege Before Disclosure
+- Encryption Does Not Replace Authorization
+- Possession Does Not Imply Authority
+- Public Does Not Mean Uncontrolled
+- Unknown Classification Is Not Public
+- Sensitive Data Must Not Cross Boundaries Without Authorization
+- Evidence Before Claims
+- Retention Must Be Governed
+- Deletion Must Be Authorized And Auditable
+
+## Classification Model
+
+CYBER HAK uses:
+
+PUBLIC  
+PRIVATE  
+SECRET  
+RESTRICTED
+
+### PUBLIC
+
+Information explicitly approved for public disclosure.
+
+### PRIVATE
+
+Internal information not approved for unrestricted public disclosure.
+
+### SECRET
+
+Highly sensitive information requiring explicit authorization and controlled handling.
+
+### RESTRICTED
+
+Information subject to the strongest handling constraints, access controls and disclosure restrictions.
+
+Permanent rule:
+
+UNKNOWN_CLASSIFICATION != PUBLIC
+
+## Data Protection Lifecycle
+
+IDENTIFY
+→ CLASSIFY
+→ AUTHORIZE
+→ ACCESS
+→ PROCESS
+→ PROTECT
+→ RECORD
+→ RETAIN
+→ REVIEW
+→ ARCHIVE_OR_DELETE
+
+## Protection Requirements
+
+### DP-01 — Data Classification Integrity
+
+Objective:
+Ensure information has an attributable classification state before governed use.
+
+Expected evidence:
+classification label, source, owner or authority reference and timestamp.
+
+Failure condition:
+data classification is absent, conflicting or unverifiable.
+
+Default response:
+DENY_DISCLOSURE → RECORD → ESCALATE_FOR_AUTHORIZED_REVIEW
+
+### DP-02 — Access Control Integrity
+
+Objective:
+Ensure access is explicitly governed by identity, authority and policy.
+
+Expected evidence:
+identity state, authorization decision, capability scope and approval evidence where required.
+
+Failure condition:
+access occurs without valid authority.
+
+Default response:
+DENY → RECORD → ESCALATE_FOR_AUTHORIZED_REVIEW
+
+### DP-03 — Least-Privilege Data Access
+
+Objective:
+Restrict access to the minimum data scope required.
+
+Expected evidence:
+bounded resource scope and authorization decision.
+
+Failure condition:
+access scope exceeds governed necessity.
+
+Default response:
+DENY_OR_REDUCE_SCOPE → RECORD → ESCALATE_FOR_AUTHORIZED_REVIEW
+
+### DP-04 — Data-at-Rest Protection
+
+Objective:
+Protect sensitive stored data according to classification and policy.
+
+Expected evidence:
+protection state, storage classification and integrity metadata.
+
+Failure condition:
+required storage protection is absent or unverifiable.
+
+Default response:
+DENY_USE_WHERE_REQUIRED → RECORD → ESCALATE_FOR_AUTHORIZED_REVIEW
+
+### DP-05 — Data-in-Transit Protection
+
+Objective:
+Protect sensitive data during governed transmission.
+
+Expected evidence:
+approved transport state, endpoint identity and policy result.
+
+Failure condition:
+required transport protection is unavailable or invalid.
+
+Default response:
+DENY_TRANSFER → RECORD → ESCALATE_FOR_AUTHORIZED_REVIEW
+
+### DP-06 — Processing Boundary Integrity
+
+Objective:
+Ensure sensitive information is processed only inside authorized Runtime Domains.
+
+Expected evidence:
+runtime identity, data classification and processing-domain binding.
+
+Failure condition:
+data is processed outside its approved boundary.
+
+Default response:
+DENY → ISOLATE_WHERE_APPLICABLE → RECORD → ESCALATE_FOR_AUTHORIZED_REVIEW
+
+### DP-07 — Data Minimization
+
+Objective:
+Limit collection and processing to information required for the authorized purpose.
+
+Expected evidence:
+declared purpose, requested fields and scope decision.
+
+Failure condition:
+unnecessary sensitive information is collected or processed.
+
+Default response:
+REDUCE_SCOPE → RECORD → ESCALATE_FOR_AUTHORIZED_REVIEW
+
+### DP-08 — Retention Governance
+
+Objective:
+Ensure retention duration and storage purpose are governed.
+
+Expected evidence:
+retention policy, classification and review state.
+
+Failure condition:
+data is retained without valid policy or beyond approved limits.
+
+Default response:
+RESTRICT_ACCESS → RECORD → ESCALATE_FOR_AUTHORIZED_REVIEW
+
+### DP-09 — Governed Deletion
+
+Objective:
+Ensure deletion of protected information is authorized, intentional and auditable.
+
+Expected evidence:
+authorization, target identity, classification and deletion record.
+
+Failure condition:
+unauthorized, destructive or untraceable deletion is requested.
+
+Default response:
+DENY → RECORD → ESCALATE_FOR_AUTHORIZED_REVIEW
+
+### DP-10 — Disclosure Control
+
+Objective:
+Prevent disclosure outside approved classification and audience boundaries.
+
+Expected evidence:
+recipient scope, disclosure authority and classification decision.
+
+Failure condition:
+unauthorized disclosure or public/private boundary violation.
+
+Default response:
+DENY_DISCLOSURE → RECORD → ESCALATE_FOR_AUTHORIZED_REVIEW
+
+### DP-11 — Sensitive Evidence Protection
+
+Objective:
+Protect forensic and incident-response evidence from inappropriate disclosure.
+
+Expected evidence:
+incident identifier, classification, custody state and authorization.
+
+Failure condition:
+sensitive evidence crosses an unauthorized boundary.
+
+Default response:
+DENY_DISCLOSURE → RECORD → ESCALATE_FOR_AUTHORIZED_REVIEW
+
+### DP-12 — Data Integrity Evidence
+
+Objective:
+Provide evidence that protected information has not been silently altered.
+
+Expected evidence:
+hashes, version identity, provenance and audit references where applicable.
+
+Failure condition:
+integrity cannot be established when required.
+
+Default response:
+MARK_UNVERIFIED → RECORD → ESCALATE_FOR_AUTHORIZED_REVIEW
+
+## Truth Boundary
+
+PUBLIC DATA-PROTECTION MODEL = DEFINED
+
+LIVE DLP ENFORCEMENT = NOT_VERIFIED
+
+LIVE ENCRYPTION INFRASTRUCTURE = NOT_VERIFIED
+
+LIVE KEY-MANAGEMENT INFRASTRUCTURE = NOT_VERIFIED
+
+PRODUCTION DATA-PROTECTION ENFORCEMENT = NOT_VERIFIED
+
+PRODUCTION AUTHORIZATION = NOT_AUTHORIZED
+
+
+========================================
+docs/SECRETS-SECURITY.md
+========================================
+
+# CYBER HAK Secrets Security
+
+CYBER HAK defines a defensive governance model for preventing unauthorized exposure, storage, transmission and use of secrets.
+
+Classification: PUBLIC
+
+This document must never contain real credentials or secret material.
+
+## Secret Categories
+
+Examples of protected secret classes include:
+
+- API credentials
+- access tokens
+- authentication secrets
+- private cryptographic keys
+- wallet private keys
+- seed phrases
+- service credentials
+- signing credentials
+- recovery secrets
+- private infrastructure authentication material
+
+No actual secret values belong in this repository.
+
+## Permanent Laws
+
+SECRET != CONFIGURATION
+
+POSSESSION != AUTHORITY
+
+ACCESS != APPROVAL
+
+PRIVATE KEY != SHAREABLE DATA
+
+SEED PHRASE != LOGGABLE DATA
+
+PUBLIC REPOSITORY != SECRET STORE
+
+UNKNOWN SECRET STATE != SAFE
+
+## Secret Lifecycle
+
+IDENTIFY
+→ CLASSIFY
+→ AUTHORIZE
+→ STORE
+→ USE
+→ ROTATE
+→ REVOKE
+→ RECORD
+→ RETIRE
+
+## Secrets Controls
+
+### SS-01 — Secret Detection
+
+Objective:
+Identify accidental secret exposure in governed artifacts.
+
+Failure response:
+QUARANTINE_OR_BLOCK → RECORD → AUTHORIZED_REVIEW
+
+### SS-02 — Secret Storage Boundary
+
+Objective:
+Prevent secrets from being stored in public repositories or inappropriate plaintext locations.
+
+Failure response:
+DENY_STORAGE → RECORD → ESCALATE
+
+### SS-03 — Secret Access Control
+
+Objective:
+Require explicit identity and authority for secret access.
+
+Failure response:
+DENY → RECORD → ESCALATE
+
+### SS-04 — Secret Scope
+
+Objective:
+Restrict secret use to the minimum authorized purpose and system scope.
+
+Failure response:
+DENY_OR_REDUCE_SCOPE → RECORD → ESCALATE
+
+### SS-05 — Secret Rotation Governance
+
+Objective:
+Ensure secret rotation is controlled and auditable.
+
+Failure response:
+REQUIRE_AUTHORIZED_ROTATION → RECORD
+
+### SS-06 — Secret Revocation
+
+Objective:
+Ensure compromised or obsolete secrets can be invalidated through governed processes.
+
+Failure response:
+REVOKE_WHEN_AUTHORIZED → RECORD → VERIFY
+
+### SS-07 — Secret Logging Prevention
+
+Objective:
+Prevent secret values from entering logs, telemetry or public evidence.
+
+Failure response:
+BLOCK_OR_REDACT → RECORD → REVIEW
+
+### SS-08 — Private-Key Protection
+
+Objective:
+Prevent unauthorized disclosure or transfer of private cryptographic key material.
+
+Permanent rule:
+
+PRIVATE KEY MATERIAL MUST NOT BE PUBLISHED
+
+### SS-09 — Wallet Secret Protection
+
+Objective:
+Prevent autonomous or unauthorized access to wallet private keys or seed phrases.
+
+Permanent rules:
+
+AUTONOMOUS WALLET AUTHORITY = DENIED
+
+SEED PHRASE EXPOSURE = PROHIBITED
+
+PRIVATE KEY EXPOSURE = PROHIBITED
+
+### SS-10 — Secret Evidence Integrity
+
+Objective:
+Record secret-security events without recording the secret itself.
+
+Safe evidence may include:
+
+- secret identifier
+- secret type
+- event timestamp
+- rotation state
+- revocation state
+- policy decision
+- audit reference
+
+Secret values themselves must not be present.
+
+## Public Repository Rule
+
+CYBER HAK Public must contain:
+
+REAL SECRET VALUES = NONE
+
+PRIVATE KEYS = NONE
+
+SEED PHRASES = NONE
+
+ACCESS TOKENS = NONE
+
+PASSWORDS = NONE
+
+## Truth Boundary
+
+PUBLIC SECRETS-SECURITY MODEL = DEFINED
+
+LIVE SECRET STORE = NOT_VERIFIED
+
+LIVE KEY MANAGEMENT = NOT_VERIFIED
+
+LIVE SECRET ROTATION = NOT_VERIFIED
+
+PRODUCTION SECRET ENFORCEMENT = NOT_VERIFIED
+
+PRODUCTION AUTHORIZATION = NOT_AUTHORIZED
+
+
+========================================
+registry/DATA-PROTECTION-CONTROLS.json
+========================================
+
+{
+  "registry": "CYBER HAK Data Protection Controls",
+  "classification": "PUBLIC",
+  "version": "1.0.0",
+  "total_data_protection_controls": 12,
+  "total_secrets_controls": 10,
+  "classification_levels": 4,
+  "default_policy": "DENY",
+  "unknown_classification_is_public": false,
+  "public_repository_is_secret_store": false,
+  "autonomous_wallet_authority": "DENIED",
+  "production_enforcement": "NOT_VERIFIED",
+  "data_protection_controls": [
+    {
+      "id": "DP-01",
+      "name": "Data Classification Integrity",
+      "default_response": "DENY_DISCLOSURE_RECORD_ESCALATE"
+    },
+    {
+      "id": "DP-02",
+      "name": "Access Control Integrity",
+      "default_response": "DENY_RECORD_ESCALATE"
+    },
+    {
+      "id": "DP-03",
+      "name": "Least-Privilege Data Access",
+      "default_response": "DENY_OR_REDUCE_SCOPE_RECORD_ESCALATE"
+    },
+    {
+      "id": "DP-04",
+      "name": "Data-at-Rest Protection",
+      "default_response": "DENY_USE_RECORD_ESCALATE"
+    },
+    {
+      "id": "DP-05",
+      "name": "Data-in-Transit Protection",
+      "default_response": "DENY_TRANSFER_RECORD_ESCALATE"
+    },
+    {
+      "id": "DP-06",
+      "name": "Processing Boundary Integrity",
+      "default_response": "DENY_ISOLATE_RECORD_ESCALATE"
+    },
+    {
+      "id": "DP-07",
+      "name": "Data Minimization",
+      "default_response": "REDUCE_SCOPE_RECORD_ESCALATE"
+    },
+    {
+      "id": "DP-08",
+      "name": "Retention Governance",
+      "default_response": "RESTRICT_ACCESS_RECORD_ESCALATE"
+    },
+    {
+      "id": "DP-09",
+      "name": "Governed Deletion",
+      "default_response": "DENY_RECORD_ESCALATE"
+    },
+    {
+      "id": "DP-10",
+      "name": "Disclosure Control",
+      "default_response": "DENY_DISCLOSURE_RECORD_ESCALATE"
+    },
+    {
+      "id": "DP-11",
+      "name": "Sensitive Evidence Protection",
+      "default_response": "DENY_DISCLOSURE_RECORD_ESCALATE"
+    },
+    {
+      "id": "DP-12",
+      "name": "Data Integrity Evidence",
+      "default_response": "MARK_UNVERIFIED_RECORD_ESCALATE"
+    }
+  ],
+  "secrets_controls": [
+    {"id": "SS-01", "name": "Secret Detection"},
+    {"id": "SS-02", "name": "Secret Storage Boundary"},
+    {"id": "SS-03", "name": "Secret Access Control"},
+    {"id": "SS-04", "name": "Secret Scope"},
+    {"id": "SS-05", "name": "Secret Rotation Governance"},
+    {"id": "SS-06", "name": "Secret Revocation"},
+    {"id": "SS-07", "name": "Secret Logging Prevention"},
+    {"id": "SS-08", "name": "Private-Key Protection"},
+    {"id": "SS-09", "name": "Wallet Secret Protection"},
+    {"id": "SS-10", "name": "Secret Evidence Integrity"}
+  ],
+  "classification": [
+    "PUBLIC",
+    "PRIVATE",
+    "SECRET",
+    "RESTRICTED"
+  ]
+}
+
+
+========================================
+README.md — ADD
+========================================
+
+## Data Protection & Secrets Security
+
+CYBER HAK defines governed controls for classification, authorized data access, disclosure boundaries, integrity evidence and secret protection.
+
+- [Data Protection](docs/DATA-PROTECTION.md)
+- [Secrets Security](docs/SECRETS-SECURITY.md)
+- [Data Protection Controls JSON](registry/DATA-PROTECTION-CONTROLS.json)
+
+UNKNOWN CLASSIFICATION != PUBLIC
+
+PUBLIC REPOSITORY != SECRET STORE
+
+
+========================================
+PUBLIC-MANIFEST.json — ADD
+========================================
+
+"data_protection": "DEFINED",
+"secrets_security": "DEFINED",
+"data_protection_controls": 12,
+"secrets_controls": 10,
+"classification_levels": 4,
+"unknown_classification_is_public": false,
+"public_repository_is_secret_store": false,
+"autonomous_wallet_authority": "DENIED",
+"live_dlp_enforcement": "NOT_VERIFIED",
+"live_key_management": "NOT_VERIFIED",
+"production_data_protection_enforcement": "NOT_VERIFIED"
 
