@@ -3643,4 +3643,829 @@ PUBLIC-MANIFEST.json — ADD
 "runtime_verification": "NOT_VERIFIED_BY_PUBLIC_REPOSITORY",
 "live_production_control_evidence": "NOT_VERIFIED",
 "production_authorization": "NOT_AUTHORIZED"
-🌎
+UPDATE ONLY:
+
+registry/DATA-PROTECTION-CONTROLS.json
+scripts/validate_public_baseline.py
+
+DO NOT modify unrelated files.
+
+========================================
+registry/DATA-PROTECTION-CONTROLS.json
+— REPLACE ENTIRE FILE
+========================================
+
+{
+  "registry": "CYBER HAK Data Protection Controls",
+  "classification": "PUBLIC",
+  "version": "1.0.1",
+  "total_data_protection_controls": 12,
+  "total_secrets_controls": 10,
+  "classification_levels": 4,
+  "classification_values": [
+    "PUBLIC",
+    "PRIVATE",
+    "SECRET",
+    "RESTRICTED"
+  ],
+  "default_policy": "DENY",
+  "unknown_classification_is_public": false,
+  "public_repository_is_secret_store": false,
+  "autonomous_wallet_authority": "DENIED",
+  "production_enforcement": "NOT_VERIFIED",
+  "data_protection_controls": [
+    {
+      "id": "DP-01",
+      "name": "Data Classification Integrity",
+      "default_response": "DENY_DISCLOSURE_RECORD_ESCALATE"
+    },
+    {
+      "id": "DP-02",
+      "name": "Access Control Integrity",
+      "default_response": "DENY_RECORD_ESCALATE"
+    },
+    {
+      "id": "DP-03",
+      "name": "Least-Privilege Data Access",
+      "default_response": "DENY_OR_REDUCE_SCOPE_RECORD_ESCALATE"
+    },
+    {
+      "id": "DP-04",
+      "name": "Data-at-Rest Protection",
+      "default_response": "DENY_USE_RECORD_ESCALATE"
+    },
+    {
+      "id": "DP-05",
+      "name": "Data-in-Transit Protection",
+      "default_response": "DENY_TRANSFER_RECORD_ESCALATE"
+    },
+    {
+      "id": "DP-06",
+      "name": "Processing Boundary Integrity",
+      "default_response": "DENY_ISOLATE_RECORD_ESCALATE"
+    },
+    {
+      "id": "DP-07",
+      "name": "Data Minimization",
+      "default_response": "REDUCE_SCOPE_RECORD_ESCALATE"
+    },
+    {
+      "id": "DP-08",
+      "name": "Retention Governance",
+      "default_response": "RESTRICT_ACCESS_RECORD_ESCALATE"
+    },
+    {
+      "id": "DP-09",
+      "name": "Governed Deletion",
+      "default_response": "DENY_RECORD_ESCALATE"
+    },
+    {
+      "id": "DP-10",
+      "name": "Disclosure Control",
+      "default_response": "DENY_DISCLOSURE_RECORD_ESCALATE"
+    },
+    {
+      "id": "DP-11",
+      "name": "Sensitive Evidence Protection",
+      "default_response": "DENY_DISCLOSURE_RECORD_ESCALATE"
+    },
+    {
+      "id": "DP-12",
+      "name": "Data Integrity Evidence",
+      "default_response": "MARK_UNVERIFIED_RECORD_ESCALATE"
+    }
+  ],
+  "secrets_controls": [
+    {"id": "SS-01", "name": "Secret Detection"},
+    {"id": "SS-02", "name": "Secret Storage Boundary"},
+    {"id": "SS-03", "name": "Secret Access Control"},
+    {"id": "SS-04", "name": "Secret Scope"},
+    {"id": "SS-05", "name": "Secret Rotation Governance"},
+    {"id": "SS-06", "name": "Secret Revocation"},
+    {"id": "SS-07", "name": "Secret Logging Prevention"},
+    {"id": "SS-08", "name": "Private-Key Protection"},
+    {"id": "SS-09", "name": "Wallet Secret Protection"},
+    {"id": "SS-10", "name": "Secret Evidence Integrity"}
+  ]
+}
+
+
+========================================
+scripts/validate_public_baseline.py
+— REPLACE ENTIRE FILE
+========================================
+
+#!/usr/bin/env python3
+
+from __future__ import annotations
+
+import json
+import re
+import sys
+from pathlib import Path
+from typing import Any
+
+ROOT = Path(__file__).resolve().parents[1]
+errors: list[str] = []
+json_cache: dict[str, Any] = {}
+
+
+class DuplicateKeyError(ValueError):
+    pass
+
+
+def fail(check: str, message: str) -> None:
+    errors.append(f"{check}: {message}")
+
+
+def reject_duplicate_keys(pairs):
+    result = {}
+
+    for key, value in pairs:
+        if key in result:
+            raise DuplicateKeyError(f"duplicate JSON key: {key}")
+        result[key] = value
+
+    return result
+
+
+def strict_load_json(path: str) -> dict:
+    if path in json_cache:
+        value = json_cache[path]
+        return value if isinstance(value, dict) else {}
+
+    full = ROOT / path
+
+    if not full.is_file():
+        fail("PV-01", f"missing required file: {path}")
+        return {}
+
+    try:
+        value = json.loads(
+            full.read_text(encoding="utf-8"),
+            object_pairs_hook=reject_duplicate_keys,
+        )
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError, DuplicateKeyError) as exc:
+        fail("PV-02", f"invalid JSON in {path}: {exc}")
+        return {}
+
+    json_cache[path] = value
+
+    if not isinstance(value, dict):
+        fail("PV-02", f"top-level JSON value must be an object: {path}")
+        return {}
+
+    return value
+
+
+def validate_exact_ids(
+    check: str,
+    items: list,
+    prefix: str,
+    start: int,
+    end: int,
+    width: int,
+) -> None:
+    expected = [
+        f"{prefix}-{number:0{width}d}"
+        for number in range(start, end + 1)
+    ]
+
+    actual = [
+        item.get("id")
+        for item in items
+        if isinstance(item, dict)
+    ]
+
+    if actual != expected:
+        fail(
+            check,
+            f"IDs must be exactly {expected[0]} through {expected[-1]}",
+        )
+
+    if len(actual) != len(set(actual)):
+        fail(check, "duplicate IDs detected")
+
+
+required_files = [
+    "README.md",
+    "SECURITY.md",
+    "PUBLIC-MANIFEST.json",
+
+    "docs/GOVERNANCE.md",
+    "docs/PUBLIC-PRIVATE-BOUNDARY.md",
+
+    "agents/README.md",
+
+    "docs/CAPABILITY-REGISTRY.md",
+    "docs/SECURITY-TIERS.md",
+    "registry/CAPABILITY-FAMILIES.json",
+
+    "docs/THREAT-MODEL.md",
+    "docs/ATTACK-SURFACE-MODEL.md",
+    "registry/THREAT-CATEGORIES.json",
+
+    "docs/INCIDENT-RESPONSE.md",
+    "docs/FORENSIC-EVIDENCE.md",
+    "registry/INCIDENT-SEVERITY.json",
+
+    "docs/CONTINUOUS-SECURITY-ASSURANCE.md",
+    "docs/SECURITY-OBSERVABILITY.md",
+    "registry/ASSURANCE-CONTROLS.json",
+
+    "docs/SOFTWARE-SUPPLY-CHAIN-SECURITY.md",
+    "docs/DEPENDENCY-PROVENANCE.md",
+    "registry/SUPPLY-CHAIN-CONTROLS.json",
+
+    "docs/DATA-PROTECTION.md",
+    "docs/SECRETS-SECURITY.md",
+    "registry/DATA-PROTECTION-CONTROLS.json",
+
+    "docs/RESILIENCE-SECURITY.md",
+    "docs/BACKUP-RECOVERY-SECURITY.md",
+    "registry/RESILIENCE-CONTROLS.json",
+
+    "docs/PUBLIC-VALIDATION.md",
+    "registry/VALIDATION-CHECKS.json",
+    "scripts/validate_public_baseline.py",
+    ".github/workflows/public-validation.yml",
+
+    "docs/ARCHITECTURE-INDEX.md",
+    "docs/CANONICAL-PUBLIC-BASELINE.md",
+    "registry/PUBLIC-BASELINE.json",
+
+    "docs/CONTROL-TRACEABILITY.md",
+    "docs/EVIDENCE-TRACEABILITY.md",
+    "registry/CONTROL-COVERAGE.json",
+]
+
+agent_names = [
+    "SENTINEL",
+    "VULCAN",
+    "CERBERUS",
+    "AEGIS",
+    "BASTION",
+    "ARGUS",
+    "MINERVA",
+    "FORENSIC",
+    "REDSHIELD",
+    "GUARDIAN-SEC",
+]
+
+required_files.extend(
+    f"agents/{index:02d}-{name}.md"
+    for index, name in enumerate(agent_names, start=1)
+)
+
+for path in required_files:
+    if not (ROOT / path).is_file():
+        fail("PV-01", f"missing required file: {path}")
+
+
+# Validate every JSON file and reject duplicate keys.
+for json_path in ROOT.rglob("*.json"):
+    if ".git" in json_path.parts:
+        continue
+
+    relative = str(json_path.relative_to(ROOT))
+    strict_load_json(relative)
+
+
+capabilities = strict_load_json("registry/CAPABILITY-FAMILIES.json")
+threats = strict_load_json("registry/THREAT-CATEGORIES.json")
+severity = strict_load_json("registry/INCIDENT-SEVERITY.json")
+assurance = strict_load_json("registry/ASSURANCE-CONTROLS.json")
+supply_chain = strict_load_json("registry/SUPPLY-CHAIN-CONTROLS.json")
+data_protection = strict_load_json("registry/DATA-PROTECTION-CONTROLS.json")
+resilience = strict_load_json("registry/RESILIENCE-CONTROLS.json")
+validation = strict_load_json("registry/VALIDATION-CHECKS.json")
+baseline = strict_load_json("registry/PUBLIC-BASELINE.json")
+coverage = strict_load_json("registry/CONTROL-COVERAGE.json")
+manifest = strict_load_json("PUBLIC-MANIFEST.json")
+
+
+# PV-03 Capability Registry
+if capabilities:
+    families = capabilities.get("families", [])
+
+    if capabilities.get("total_capability_families") != 59:
+        fail("PV-03", "total_capability_families must equal 59")
+
+    if len(families) != 59:
+        fail("PV-03", "families must contain exactly 59 entries")
+
+    validate_exact_ids("PV-03", families, "CF", 1, 59, 3)
+
+    if capabilities.get("governed_security_skills") != 512:
+        fail("PV-03", "governed_security_skills must equal 512")
+
+    if capabilities.get("security_nca") != 10:
+        fail("PV-03", "security_nca must equal 10")
+
+    if capabilities.get("default_policy") != "DENY":
+        fail("PV-03", "default_policy must equal DENY")
+
+    if capabilities.get("execution_authority") != "NONE_BY_REGISTRY":
+        fail("PV-03", "execution_authority must equal NONE_BY_REGISTRY")
+
+
+# PV-04 Threat Registry
+if threats:
+    categories = threats.get("categories", [])
+
+    if threats.get("total_threat_categories") != 30:
+        fail("PV-04", "total_threat_categories must equal 30")
+
+    if len(categories) != 30:
+        fail("PV-04", "categories must contain exactly 30 entries")
+
+    validate_exact_ids("PV-04", categories, "TM", 1, 30, 2)
+
+    if threats.get("default_policy") != "DENY":
+        fail("PV-04", "threat default_policy must equal DENY")
+
+
+# PV-05 Incident Response
+incident_path = ROOT / "docs/INCIDENT-RESPONSE.md"
+
+if incident_path.is_file():
+    incident_text = incident_path.read_text(encoding="utf-8")
+
+    actual_phases = re.findall(
+        r"^##\s+IR-(\d{2})\b",
+        incident_text,
+        flags=re.MULTILINE,
+    )
+
+    expected_phases = [f"{number:02d}" for number in range(1, 10)]
+
+    if actual_phases != expected_phases:
+        fail("PV-05", "incident phases must be IR-01 through IR-09")
+
+
+# PV-06 Incident Severity
+if severity:
+    levels = severity.get("levels", [])
+
+    expected_escalations = {
+        "SEV-0": "NO_MANDATORY_ESCALATION",
+        "SEV-1": "SECURITY_NCA_REVIEW",
+        "SEV-2": "SECURITY_ORCHESTRATOR_ESCALATION",
+        "SEV-3": "HANTER_ESCALATION",
+        "SEV-4": "HANTER_AND_ARCHITECT_ESCALATION",
+    }
+
+    if severity.get("total_severity_levels") != 5:
+        fail("PV-06", "total_severity_levels must equal 5")
+
+    if len(levels) != 5:
+        fail("PV-06", "severity registry must contain exactly 5 levels")
+
+    actual_escalations = {
+        item.get("id"): item.get("escalation")
+        for item in levels
+        if isinstance(item, dict)
+    }
+
+    if actual_escalations != expected_escalations:
+        fail("PV-06", "incident escalation values are not canonical")
+
+
+# PV-07 Assurance
+if assurance:
+    controls = assurance.get("controls", [])
+    signals = assurance.get("signal_classes", [])
+    drift = assurance.get("drift_categories", [])
+
+    if len(controls) != 12:
+        fail("PV-07", "assurance controls must equal 12")
+
+    validate_exact_ids("PV-07", controls, "AS", 1, 12, 2)
+
+    if len(signals) != 8:
+        fail("PV-07", "signal classes must equal 8")
+
+    validate_exact_ids("PV-07", signals, "SIG", 1, 8, 2)
+
+    if len(drift) != 10:
+        fail("PV-07", "drift categories must equal 10")
+
+    validate_exact_ids("PV-07", drift, "DRIFT", 1, 10, 2)
+
+    if assurance.get("unknown_is_pass") is not False:
+        fail("PV-13", "unknown_is_pass must be false")
+
+
+# PV-08 Supply Chain
+if supply_chain:
+    controls = supply_chain.get("controls", [])
+
+    if len(controls) != 14:
+        fail("PV-08", "supply-chain controls must equal 14")
+
+    validate_exact_ids("PV-08", controls, "SC", 1, 14, 2)
+
+    if supply_chain.get("unknown_provenance_is_pass") is not False:
+        fail("PV-13", "unknown_provenance_is_pass must be false")
+
+    if supply_chain.get("public_source_is_trusted_executable") is not False:
+        fail("PV-08", "public_source_is_trusted_executable must be false")
+
+
+# PV-09 Data Protection
+if data_protection:
+    controls = data_protection.get("data_protection_controls", [])
+    secret_controls = data_protection.get("secrets_controls", [])
+
+    if data_protection.get("classification") != "PUBLIC":
+        fail("PV-09", "registry classification must equal PUBLIC")
+
+    expected_classifications = [
+        "PUBLIC",
+        "PRIVATE",
+        "SECRET",
+        "RESTRICTED",
+    ]
+
+    if data_protection.get("classification_values") != expected_classifications:
+        fail(
+            "PV-09",
+            "classification_values must equal PUBLIC, PRIVATE, SECRET, RESTRICTED",
+        )
+
+    if data_protection.get("classification_levels") != 4:
+        fail("PV-09", "classification_levels must equal 4")
+
+    if len(controls) != 12:
+        fail("PV-09", "data-protection controls must equal 12")
+
+    validate_exact_ids("PV-09", controls, "DP", 1, 12, 2)
+
+    if len(secret_controls) != 10:
+        fail("PV-09", "secrets controls must equal 10")
+
+    validate_exact_ids("PV-09", secret_controls, "SS", 1, 10, 2)
+
+    if data_protection.get("unknown_classification_is_public") is not False:
+        fail("PV-13", "unknown_classification_is_public must be false")
+
+    if data_protection.get("public_repository_is_secret_store") is not False:
+        fail("PV-09", "public_repository_is_secret_store must be false")
+
+    if data_protection.get("autonomous_wallet_authority") != "DENIED":
+        fail("PV-09", "autonomous_wallet_authority must equal DENIED")
+
+
+# PV-10 Resilience
+if resilience:
+    resilience_controls = resilience.get("resilience_controls", [])
+    backup_controls = resilience.get("backup_controls", [])
+
+    if len(resilience_controls) != 12:
+        fail("PV-10", "resilience controls must equal 12")
+
+    validate_exact_ids("PV-10", resilience_controls, "RS", 1, 12, 2)
+
+    if len(backup_controls) != 12:
+        fail("PV-10", "backup controls must equal 12")
+
+    validate_exact_ids("PV-10", backup_controls, "BR", 1, 12, 2)
+
+    if resilience.get("unknown_recovery_state_is_pass") is not False:
+        fail("PV-13", "unknown_recovery_state_is_pass must be false")
+
+    if resilience.get("backup_equals_recovery") is not False:
+        fail("PV-10", "backup_equals_recovery must be false")
+
+    if resilience.get("restore_equals_verification") is not False:
+        fail("PV-10", "restore_equals_verification must be false")
+
+
+# Validation Registry
+if validation:
+    checks = validation.get("checks", [])
+
+    if validation.get("total_validation_checks") != 18:
+        fail("PV-02", "total_validation_checks must equal 18")
+
+    if len(checks) != 18:
+        fail("PV-02", "validation registry must contain 18 checks")
+
+    validate_exact_ids("PV-02", checks, "PV", 1, 18, 2)
+
+
+# Canonical Public Baseline
+if baseline:
+    expected_baseline = {
+        "baseline": "CYBER-HAK-PUBLIC-1.0",
+        "classification": "PUBLIC",
+        "status": "CANONICAL_PUBLIC_ARCHITECTURE_BASELINE",
+        "parent_architecture": "HANTER",
+        "hanter_instances": 1,
+        "security_orchestrators": 1,
+        "security_orchestrator_id": "SECURITY-ORCHESTRATOR-01",
+        "security_nca": 10,
+        "governed_security_skills": 512,
+        "capability_families": 59,
+        "threat_categories": 30,
+        "incident_response_phases": 9,
+        "incident_severity_levels": 5,
+        "assurance_controls": 12,
+        "observability_signal_classes": 8,
+        "security_drift_categories": 10,
+        "supply_chain_controls": 14,
+        "data_protection_controls": 12,
+        "secrets_controls": 10,
+        "classification_levels": 4,
+        "resilience_controls": 12,
+        "backup_controls": 12,
+        "validation_checks": 18,
+        "default_policy": "DENY",
+        "t3_policy": "ALWAYS_DENY",
+        "unknown_is_pass": False,
+        "unknown_classification_is_public": False,
+        "public_source_is_trusted_executable": False,
+        "backup_equals_recovery": False,
+        "restore_equals_verification": False,
+        "autonomous_wallet_authority": "DENIED",
+        "private_hanter_runtime_published": False,
+        "private_runtime_wiring_status": "NOT_VERIFIED_BY_PUBLIC_REPOSITORY",
+        "live_production_runtime": "NOT_VERIFIED",
+        "production_authorization": "NOT_AUTHORIZED",
+    }
+
+    for key, expected in expected_baseline.items():
+        if baseline.get(key) != expected:
+            fail(
+                "PV-12",
+                f"PUBLIC-BASELINE.json: {key} must equal {expected!r}",
+            )
+
+
+# Control Traceability
+if coverage:
+    domains = coverage.get("domains", [])
+    evidence_model = coverage.get("evidence_model", [])
+
+    if coverage.get("total_traceability_domains") != 9:
+        fail("PV-12", "traceability domains must equal 9")
+
+    if len(domains) != 9:
+        fail("PV-12", "CONTROL-COVERAGE domains must contain 9 entries")
+
+    validate_exact_ids("PV-12", domains, "TR", 1, 9, 2)
+
+    expected_evidence_ids = [f"E{i}" for i in range(6)]
+    actual_evidence_ids = [
+        item.get("id")
+        for item in evidence_model
+        if isinstance(item, dict)
+    ]
+
+    if coverage.get("evidence_levels") != 6:
+        fail("PV-12", "evidence_levels must equal 6")
+
+    if actual_evidence_ids != expected_evidence_ids:
+        fail("PV-12", "evidence model must be E0 through E5")
+
+    if coverage.get("runtime_verification") != "NOT_VERIFIED_BY_THIS_PUBLIC_REPOSITORY":
+        fail("PV-14", "runtime verification truth boundary is incorrect")
+
+    if coverage.get("production_authorization") != "NOT_AUTHORIZED":
+        fail("PV-14", "production authorization truth boundary is incorrect")
+
+
+# README Links
+readme_path = ROOT / "README.md"
+
+if readme_path.is_file():
+    readme = readme_path.read_text(encoding="utf-8")
+
+    required_links = [
+        "agents/README.md",
+        "docs/CAPABILITY-REGISTRY.md",
+        "registry/CAPABILITY-FAMILIES.json",
+        "docs/SECURITY-TIERS.md",
+        "docs/THREAT-MODEL.md",
+        "docs/ATTACK-SURFACE-MODEL.md",
+        "registry/THREAT-CATEGORIES.json",
+        "docs/INCIDENT-RESPONSE.md",
+        "docs/FORENSIC-EVIDENCE.md",
+        "registry/INCIDENT-SEVERITY.json",
+        "docs/CONTINUOUS-SECURITY-ASSURANCE.md",
+        "docs/SECURITY-OBSERVABILITY.md",
+        "registry/ASSURANCE-CONTROLS.json",
+        "docs/SOFTWARE-SUPPLY-CHAIN-SECURITY.md",
+        "docs/DEPENDENCY-PROVENANCE.md",
+        "registry/SUPPLY-CHAIN-CONTROLS.json",
+        "docs/DATA-PROTECTION.md",
+        "docs/SECRETS-SECURITY.md",
+        "registry/DATA-PROTECTION-CONTROLS.json",
+        "docs/RESILIENCE-SECURITY.md",
+        "docs/BACKUP-RECOVERY-SECURITY.md",
+        "registry/RESILIENCE-CONTROLS.json",
+        "docs/PUBLIC-VALIDATION.md",
+        "registry/VALIDATION-CHECKS.json",
+        "scripts/validate_public_baseline.py",
+        ".github/workflows/public-validation.yml",
+        "docs/ARCHITECTURE-INDEX.md",
+        "docs/CANONICAL-PUBLIC-BASELINE.md",
+        "registry/PUBLIC-BASELINE.json",
+        "docs/CONTROL-TRACEABILITY.md",
+        "docs/EVIDENCE-TRACEABILITY.md",
+        "registry/CONTROL-COVERAGE.json",
+    ]
+
+    for index, name in enumerate(agent_names, start=1):
+        required_links.append(f"agents/{index:02d}-{name}.md")
+
+    for link in required_links:
+        if link not in readme:
+            fail("PV-11", f"README missing link: {link}")
+
+
+# PUBLIC-MANIFEST canonical values
+if manifest:
+    expected_manifest = {
+        "classification": "PUBLIC",
+        "parent_architecture": "HANTER",
+        "security_orchestrator": "SECURITY-ORCHESTRATOR-01",
+        "security_nca": 10,
+        "governed_security_skills": 512,
+        "capability_families": 59,
+        "default_policy": "DENY",
+        "t3_policy": "ALWAYS_DENY",
+        "threat_categories": 30,
+        "incident_severity_levels": 5,
+        "assurance_controls": 12,
+        "observability_signal_classes": 8,
+        "security_drift_categories": 10,
+        "supply_chain_controls": 14,
+        "data_protection_controls": 12,
+        "secrets_controls": 10,
+        "classification_levels": 4,
+        "resilience_controls": 12,
+        "backup_controls": 12,
+        "validation_checks": 18,
+        "unknown_is_pass": False,
+        "unknown_provenance_is_pass": False,
+        "unknown_classification_is_public": False,
+        "unknown_recovery_state_is_pass": False,
+        "public_source_is_trusted_executable": False,
+        "autonomous_wallet_authority": "DENIED",
+        "canonical_public_baseline": "CYBER-HAK-PUBLIC-1.0",
+        "hanter_instances": 1,
+        "security_orchestrators": 1,
+        "traceability_domains": 9,
+        "evidence_levels": 6,
+        "private_hanter_runtime_published": False,
+        "private_runtime_wiring_status": "NOT_VERIFIED_BY_PUBLIC_REPOSITORY",
+        "live_production_runtime": "NOT_VERIFIED",
+        "production_authorization": "NOT_AUTHORIZED",
+    }
+
+    for key, expected in expected_manifest.items():
+        if manifest.get(key) != expected:
+            fail(
+                "PV-12",
+                f"PUBLIC-MANIFEST.json: {key} must equal {expected!r}",
+            )
+
+
+# T3 Boundary
+if manifest and manifest.get("t3_policy") != "ALWAYS_DENY":
+    fail("PV-17", "T3 policy must equal ALWAYS_DENY")
+
+
+# Public / Private Boundary
+boundary = ROOT / "docs/PUBLIC-PRIVATE-BOUNDARY.md"
+
+if not boundary.is_file():
+    fail("PV-18", "public/private boundary document missing")
+
+
+# Workflow safety boundary
+workflow_path = ROOT / ".github/workflows/public-validation.yml"
+
+if workflow_path.is_file():
+    workflow = workflow_path.read_text(encoding="utf-8")
+
+    if not re.search(
+        r"(?m)^permissions:\s*\n\s+contents:\s*read\s*$",
+        workflow,
+    ):
+        fail("PV-18", "public validation workflow must use contents: read")
+
+    forbidden_workflow_permissions = [
+        "contents: write",
+        "pull-requests: write",
+        "issues: write",
+        "actions: write",
+        "id-token: write",
+    ]
+
+    for permission in forbidden_workflow_permissions:
+        if permission in workflow:
+            fail(
+                "PV-18",
+                f"forbidden write permission in public workflow: {permission}",
+            )
+
+    if "python3 scripts/validate_public_baseline.py" not in workflow:
+        fail("PV-18", "workflow does not execute public validator")
+
+
+# Prompt pollution protection.
+# Markers are constructed from fragments so this validator cannot match itself.
+prompt_pollution_patterns = [
+    "EXECUTE A REAL " + "GITHUB WRITE",
+    "VERIFY BEFORE " + "COMMIT",
+    "AFTER " + "PUSH:",
+    "RETURN " + "ONLY:",
+    "PRESERVE ALL EXISTING " + "FILES",
+]
+
+secret_patterns = {
+    "PEM private key": re.compile(
+        r"-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----"
+    ),
+    "GitHub classic token": re.compile(
+        r"\bgh[pousr]_[A-Za-z0-9]{36,}\b"
+    ),
+    "GitHub fine-grained token": re.compile(
+        r"\bgithub_pat_[A-Za-z0-9_]{20,}\b"
+    ),
+    "AWS access key": re.compile(
+        r"\bAKIA[0-9A-Z]{16}\b"
+    ),
+}
+
+scan_extensions = {
+    ".md",
+    ".json",
+    ".py",
+    ".yml",
+    ".yaml",
+}
+
+for path in ROOT.rglob("*"):
+    if not path.is_file():
+        continue
+
+    if ".git" in path.parts or "__pycache__" in path.parts:
+        continue
+
+    if path.suffix.lower() not in scan_extensions:
+        continue
+
+    try:
+        text = path.read_text(encoding="utf-8")
+    except (UnicodeDecodeError, OSError):
+        continue
+
+    relative = path.relative_to(ROOT)
+
+    for marker in prompt_pollution_patterns:
+        if marker in text:
+            fail(
+                "PV-15",
+                f"prompt pollution marker found in {relative}: {marker}",
+            )
+
+    for name, pattern in secret_patterns.items():
+        if pattern.search(text):
+            fail(
+                "PV-16",
+                f"high-confidence secret pattern found in {relative}: {name}",
+            )
+
+
+if errors:
+    print("CYBER HAK PUBLIC VALIDATION = FAIL")
+
+    for error in errors:
+        print(f"- {error}")
+
+    print(f"ERROR COUNT = {len(errors)}")
+    sys.exit(1)
+
+
+print("CYBER HAK PUBLIC VALIDATION = PASS")
+print("VALIDATION CHECKS = 18/18")
+print("CAPABILITY FAMILIES = 59/59")
+print("THREAT CATEGORIES = 30/30")
+print("INCIDENT PHASES = 9/9")
+print("SEVERITY LEVELS = 5/5")
+print("ASSURANCE CONTROLS = 12/12")
+print("SUPPLY CHAIN CONTROLS = 14/14")
+print("DATA PROTECTION CONTROLS = 12/12")
+print("SECRETS CONTROLS = 10/10")
+print("RESILIENCE CONTROLS = 12/12")
+print("BACKUP CONTROLS = 12/12")
+print("TRACEABILITY DOMAINS = 9/9")
+print("EVIDENCE LEVELS = E0-E5")
+print("JSON DUPLICATE KEYS = NONE")
+print("PROMPT POLLUTION = NONE")
+print("PRODUCTION AUTHORIZATION = NOT_AUTHORIZED")
+sys.exit(0)
+🧬
