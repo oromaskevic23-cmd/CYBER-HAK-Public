@@ -452,3 +452,418 @@ FETCH-BACK = PASS / FAIL
 PROMPT POLLUTION = NONE / FOUND
 PRIVATE MATERIAL = NONE / FOUND
 REGISTRY FILES = <list>
+REPOSITORY:
+oromaskevic23-cmd/CYBER-HAK-Public
+
+BRANCH:
+main
+
+EXECUTE A REAL GITHUB WRITE.
+
+Do NOT paste this task into README.md.
+Use GitHub write tools to create actual repository files.
+
+PRESERVE ALL EXISTING FILES.
+
+==================================================
+PRECONDITION GATE
+==================================================
+
+Before changing anything, verify that COMMIT 04 artifacts exist:
+
+docs/CAPABILITY-REGISTRY.md
+registry/CAPABILITY-FAMILIES.json
+docs/SECURITY-TIERS.md
+
+Verify:
+
+CAPABILITY FAMILIES = 59
+GOVERNED SECURITY SKILLS = 512
+SECURITY NCA = 10
+
+If any required COMMIT 04 artifact is missing or invalid:
+
+DO NOT COMMIT.
+
+Return only:
+
+COMMIT 05 = BLOCKED
+REASON = COMMIT_04_PRECONDITION_FAILED
+
+If the precondition passes, continue.
+
+==================================================
+CREATE
+==================================================
+
+docs/THREAT-MODEL.md
+docs/ATTACK-SURFACE-MODEL.md
+registry/THREAT-CATEGORIES.json
+
+UPDATE:
+
+README.md
+PUBLIC-MANIFEST.json
+
+==================================================
+THREAT MODEL PRINCIPLES
+==================================================
+
+CYBER HAK uses a defensive, governance-first threat model.
+
+The threat model must protect:
+
+- Architect authority
+- HANTER command integrity
+- SECURITY-ORCHESTRATOR-01 governance
+- Security Nano Core Agent boundaries
+- AI Passport identity integrity
+- Enterprise IMPERIAL Skills capability boundaries
+- Guardian Core policy enforcement
+- Approval Gateway authorization
+- Runtime Domain isolation
+- Audit Ledger integrity
+- PUBLIC / PRIVATE classification boundaries
+- secrets and credentials
+- software supply chain
+- production infrastructure
+- security evidence
+- economic and wallet boundaries
+
+Permanent laws:
+
+IDENTITY ≠ AUTHORITY
+CAPABILITY ≠ APPROVAL
+INTELLIGENCE ≠ PRIVILEGE
+DISCOVERY ≠ AUTHORIZATION
+PUBLIC ≠ TRUSTED
+COMMIT ≠ PRODUCTION DEPLOYMENT
+
+Default Policy = DENY
+
+==================================================
+docs/THREAT-MODEL.md
+==================================================
+
+Create:
+
+# CYBER HAK Threat Model
+
+Explain the defensive threat-model purpose.
+
+Document these threat categories:
+
+TM-01 Identity Spoofing
+TM-02 Authentication Bypass
+TM-03 Authorization Bypass
+TM-04 Privilege Escalation
+TM-05 Capability Abuse
+TM-06 Approval Gateway Bypass
+TM-07 Guardian Core Bypass
+TM-08 Runtime Domain Escape
+TM-09 Cross-Domain Contamination
+TM-10 Prompt / Instruction Injection
+TM-11 Malicious Tool Invocation
+TM-12 Data Exfiltration
+TM-13 Secret Exposure
+TM-14 Audit Ledger Tampering
+TM-15 Evidence Tampering
+TM-16 Replay Attacks
+TM-17 TOCTOU / Decision Drift
+TM-18 Supply Chain Compromise
+TM-19 Dependency Compromise
+TM-20 CI/CD Pipeline Compromise
+TM-21 Malicious Configuration Change
+TM-22 Public / Private Boundary Violation
+TM-23 Unauthorized Target Expansion
+TM-24 Autonomous Persistence
+TM-25 Destructive Execution
+TM-26 Credential Theft
+TM-27 Unauthorized Network Interaction
+TM-28 Unauthorized Financial Action
+TM-29 Private-Key / Wallet Material Exposure
+TM-30 Governance Override Attempt
+
+For every threat category include only:
+
+- threat name
+- protected boundary
+- defensive risk description
+- prevention controls
+- detection / evidence expectations
+- default response
+
+Do NOT include:
+
+- exploit payloads
+- malware code
+- persistence instructions
+- credential theft procedures
+- destructive commands
+- unauthorized intrusion instructions
+- bypass recipes
+
+Default defensive response for governance violations:
+
+DENY
+ISOLATE
+RECORD
+ESCALATE FOR AUTHORIZED REVIEW
+
+==================================================
+docs/ATTACK-SURFACE-MODEL.md
+==================================================
+
+Create:
+
+# CYBER HAK Attack Surface Model
+
+Document high-level defensive attack surfaces only.
+
+Include:
+
+## 1. Identity Surface
+
+AI Passport
+authentication
+authorization
+roles
+privileges
+
+## 2. Capability Surface
+
+EIS capability registry
+skill routing
+capability assignment
+capability revocation
+
+## 3. Governance Surface
+
+Guardian Core
+Approval Gateway
+policy decisions
+decision binding
+
+## 4. Runtime Surface
+
+Runtime Domains
+agent isolation
+process boundaries
+container / cloud boundaries
+
+## 5. Agent Surface
+
+Security NCA
+SECURITY-ORCHESTRATOR-01
+agent-to-agent communication
+task delegation
+
+## 6. Data Surface
+
+PUBLIC
+PRIVATE
+SECRET
+RESTRICTED
+logs
+evidence
+configuration
+security metadata
+
+## 7. Audit Surface
+
+Audit Ledger
+evidence integrity
+event ordering
+replay protection
+
+## 8. Software Supply Chain Surface
+
+dependencies
+packages
+containers
+build artifacts
+CI/CD
+third-party security sources
+
+## 9. API / Integration Surface
+
+APIs
+webhooks
+external services
+connectors
+repository integrations
+
+## 10. Economic Boundary Surface
+
+payment intents
+wallet references
+financial metadata
+authorization boundaries
+
+State clearly:
+
+CYBER HAK has no autonomous wallet authority.
+
+Security capability must never imply financial execution authority.
+
+For every attack surface provide:
+
+- assets
+- trust boundary
+- primary defensive risks
+- required controls
+- expected evidence
+
+==================================================
+registry/THREAT-CATEGORIES.json
+==================================================
+
+Create valid machine-readable JSON.
+
+Required structure:
+
+{
+  "registry": "CYBER HAK Threat Categories",
+  "classification": "PUBLIC",
+  "version": "1.0.0",
+  "total_threat_categories": 30,
+  "default_policy": "DENY",
+  "default_governance_response": [
+    "DENY",
+    "ISOLATE",
+    "RECORD",
+    "ESCALATE_FOR_AUTHORIZED_REVIEW"
+  ],
+  "categories": [
+    ...
+  ]
+}
+
+Create exactly 30 unique entries.
+
+IDs:
+
+TM-01 through TM-30
+
+Each entry must contain:
+
+"id"
+"name"
+"protected_boundary"
+"defensive_objective"
+"default_response"
+
+Every default_response must be:
+
+"DENY_UNLESS_EXPLICITLY_GOVERNED"
+
+No offensive procedures.
+
+==================================================
+README.md UPDATE
+==================================================
+
+Add a concise section:
+
+## Threat Model & Attack Surface
+
+State:
+
+CYBER HAK uses a governance-first defensive threat model covering identity, capability, approval, runtime, agent, data, audit, software supply-chain, integration and economic boundaries.
+
+Add links:
+
+[Threat Model](docs/THREAT-MODEL.md)
+[Attack Surface Model](docs/ATTACK-SURFACE-MODEL.md)
+[Threat Categories JSON](registry/THREAT-CATEGORIES.json)
+
+Do not duplicate the full threat model in README.md.
+
+Do not paste this task into README.md.
+
+==================================================
+PUBLIC-MANIFEST.json UPDATE
+==================================================
+
+Preserve all existing fields.
+
+Ensure these fields exist and remain correct:
+
+"threat_model": "DEFINED",
+"attack_surface_model": "DEFINED",
+"threat_categories": 30,
+"default_policy": "DENY",
+"security_nca": 10,
+"governed_security_skills": 512,
+"capability_families": 59,
+"private_hanter_runtime_published": false,
+"production_authorization": "NOT_AUTHORIZED"
+
+Keep valid JSON.
+
+==================================================
+VERIFY BEFORE COMMIT
+==================================================
+
+Verify remotely:
+
+docs/THREAT-MODEL.md exists
+docs/ATTACK-SURFACE-MODEL.md exists
+registry/THREAT-CATEGORIES.json exists
+
+Validate:
+
+THREAT CATEGORIES = exactly 30
+THREAT IDs = TM-01 through TM-30
+DUPLICATE THREAT IDs = NONE
+DUPLICATE THREAT NAMES = NONE
+DEFAULT POLICY = DENY
+
+Validate:
+
+registry/THREAT-CATEGORIES.json = valid JSON
+PUBLIC-MANIFEST.json = valid JSON
+
+Verify:
+
+README LINKS = PASS
+PROMPT POLLUTION = NONE
+PRIVATE MATERIAL = NONE
+OFFENSIVE PAYLOADS = NONE
+MALWARE CODE = NONE
+CREDENTIAL THEFT PROCEDURES = NONE
+DESTRUCTIVE INSTRUCTIONS = NONE
+UNRESTRICTED EXECUTION AUTHORITY = NONE
+AUTONOMOUS WALLET AUTHORITY = NONE
+PRODUCTION AUTHORIZATION = NOT_AUTHORIZED
+
+Fetch all created and updated files back from GitHub main.
+
+Create exactly ONE commit.
+
+COMMIT MESSAGE:
+
+docs(threat-model): establish defensive threat and attack-surface model
+
+AFTER PUSH:
+
+Fetch repository root.
+Fetch docs directory.
+Fetch registry directory.
+Fetch README.md.
+Fetch PUBLIC-MANIFEST.json.
+Fetch all three COMMIT 05 files.
+
+RETURN ONLY:
+
+COMMIT 05 = <SHA>
+THREAT CATEGORIES = 30/30
+THREAT JSON = PASS / FAIL
+ATTACK SURFACE MODEL = PASS / FAIL
+MANIFEST JSON = PASS / FAIL
+README LINKS = PASS / FAIL
+FETCH-BACK = PASS / FAIL
+PROMPT POLLUTION = NONE / FOUND
+PRIVATE MATERIAL = NONE / FOUND
+OFFENSIVE PAYLOADS = NONE / FOUND
+REGISTRY FILES = <list>
