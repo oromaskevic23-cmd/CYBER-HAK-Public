@@ -3058,4 +3058,589 @@ PUBLIC-MANIFEST.json — ADD
 "private_runtime_wiring_status": "NOT_VERIFIED_BY_PUBLIC_REPOSITORY",
 "live_production_runtime": "NOT_VERIFIED",
 "production_authorization": "NOT_AUTHORIZED"
+CREATE:
 
+docs/CONTROL-TRACEABILITY.md
+docs/EVIDENCE-TRACEABILITY.md
+registry/CONTROL-COVERAGE.json
+
+UPDATE:
+
+README.md
+PUBLIC-MANIFEST.json
+
+========================================
+docs/CONTROL-TRACEABILITY.md
+========================================
+
+# CYBER HAK Security Control Traceability
+
+CYBER HAK defines a governed traceability model that connects architecture, control domains, machine-readable registries, validation artifacts and evidence requirements.
+
+Classification: PUBLIC
+
+This document does not claim live production enforcement.
+
+## Purpose
+
+Traceability prevents architectural claims from becoming detached from evidence.
+
+Every declared control domain should be attributable to:
+
+ARCHITECTURE
+→ CONTROL
+→ REGISTRY
+→ EVIDENCE REQUIREMENT
+→ VALIDATION
+→ STATUS
+
+Permanent rules:
+
+CLAIM != EVIDENCE
+
+DOCUMENTED != IMPLEMENTED
+
+IMPLEMENTED != VALIDATED
+
+VALIDATED != RUNTIME VERIFIED
+
+RUNTIME VERIFIED != PRODUCTION AUTHORIZED
+
+MISSING EVIDENCE != PASS
+
+## Traceability Domains
+
+### TR-01 — Governance
+
+Architecture:
+
+AI Passport
+→ Enterprise IMPERIAL Skills (EIS)
+→ Guardian Core
+→ Approval Gateway
+→ Runtime Domain
+→ Audit Ledger
+
+Primary artifacts:
+
+- docs/GOVERNANCE.md
+- docs/PUBLIC-PRIVATE-BOUNDARY.md
+- README.md
+
+Evidence expectation:
+
+governance definitions, authorization boundaries and public/private separation.
+
+Public status:
+
+DEFINED
+
+### TR-02 — Capability Governance
+
+Primary artifacts:
+
+- docs/CAPABILITY-REGISTRY.md
+- docs/SECURITY-TIERS.md
+- registry/CAPABILITY-FAMILIES.json
+
+Declared model:
+
+- 512 governed security skills
+- 59 capability families
+- 10 Security Nano Core Agents
+- T3 = ALWAYS DENY
+
+Public status:
+
+DEFINED
+
+### TR-03 — Threat Architecture
+
+Primary artifacts:
+
+- docs/THREAT-MODEL.md
+- docs/ATTACK-SURFACE-MODEL.md
+- registry/THREAT-CATEGORIES.json
+
+Declared model:
+
+Threat Categories = 30
+
+Public status:
+
+DEFINED
+
+### TR-04 — Incident Response & Forensics
+
+Primary artifacts:
+
+- docs/INCIDENT-RESPONSE.md
+- docs/FORENSIC-EVIDENCE.md
+- registry/INCIDENT-SEVERITY.json
+
+Declared model:
+
+Incident Phases = 9
+
+Severity Levels = 5
+
+Critical escalation:
+
+SEV-4 = HANTER_AND_ARCHITECT_ESCALATION
+
+Public status:
+
+DEFINED
+
+### TR-05 — Continuous Security Assurance
+
+Primary artifacts:
+
+- docs/CONTINUOUS-SECURITY-ASSURANCE.md
+- docs/SECURITY-OBSERVABILITY.md
+- registry/ASSURANCE-CONTROLS.json
+
+Declared model:
+
+Assurance Controls = 12
+
+Signal Classes = 8
+
+Drift Categories = 10
+
+Permanent rule:
+
+UNKNOWN != PASS
+
+Public status:
+
+DEFINED
+
+### TR-06 — Software Supply Chain Security
+
+Primary artifacts:
+
+- docs/SOFTWARE-SUPPLY-CHAIN-SECURITY.md
+- docs/DEPENDENCY-PROVENANCE.md
+- registry/SUPPLY-CHAIN-CONTROLS.json
+
+Declared model:
+
+Supply Chain Controls = 14
+
+Permanent rule:
+
+PUBLIC SOURCE != TRUSTED EXECUTABLE
+
+Public status:
+
+DEFINED
+
+### TR-07 — Data Protection & Secrets Security
+
+Primary artifacts:
+
+- docs/DATA-PROTECTION.md
+- docs/SECRETS-SECURITY.md
+- registry/DATA-PROTECTION-CONTROLS.json
+
+Declared model:
+
+Data Protection Controls = 12
+
+Secrets Controls = 10
+
+Classification Levels = 4
+
+Permanent rules:
+
+UNKNOWN_CLASSIFICATION != PUBLIC
+
+PUBLIC_REPOSITORY != SECRET_STORE
+
+AUTONOMOUS_WALLET_AUTHORITY = DENIED
+
+Public status:
+
+DEFINED
+
+### TR-08 — Resilience & Recovery
+
+Primary artifacts:
+
+- docs/RESILIENCE-SECURITY.md
+- docs/BACKUP-RECOVERY-SECURITY.md
+- registry/RESILIENCE-CONTROLS.json
+
+Declared model:
+
+Resilience Controls = 12
+
+Backup Controls = 12
+
+Permanent rules:
+
+BACKUP != RECOVERY
+
+RESTORE != VERIFICATION
+
+RECOVERED != VERIFIED
+
+Public status:
+
+DEFINED
+
+### TR-09 — Public Validation
+
+Primary artifacts:
+
+- docs/PUBLIC-VALIDATION.md
+- registry/VALIDATION-CHECKS.json
+- scripts/validate_public_baseline.py
+- .github/workflows/public-validation.yml
+
+Declared model:
+
+Validation Checks = 18
+
+Permanent rules:
+
+CI PASS != RUNTIME VERIFICATION
+
+CI PASS != PRODUCTION AUTHORIZATION
+
+Public status:
+
+IMPLEMENTED
+
+## Traceability Status Vocabulary
+
+DEFINED
+
+IMPLEMENTED
+
+VALIDATED
+
+RUNTIME_VERIFIED
+
+PRODUCTION_AUTHORIZED
+
+NOT_VERIFIED
+
+NOT_AUTHORIZED
+
+A lower evidence state must never be automatically promoted to a higher evidence state.
+
+## Canonical Traceability Rule
+
+Every future CYBER HAK public security claim should identify:
+
+1. architecture source
+2. control or registry source
+3. evidence requirement
+4. validation method
+5. current evidence level
+6. production authorization state
+
+## Truth Boundary
+
+PUBLIC TRACEABILITY MODEL = DEFINED
+
+PUBLIC CONTROL COVERAGE REGISTRY = DEFINED
+
+PRIVATE HANTER RUNTIME TRACEABILITY = NOT_VERIFIED BY THIS PUBLIC REPOSITORY
+
+LIVE PRODUCTION CONTROL EVIDENCE = NOT_VERIFIED
+
+PRODUCTION AUTHORIZATION = NOT_AUTHORIZED
+
+
+========================================
+docs/EVIDENCE-TRACEABILITY.md
+========================================
+
+# CYBER HAK Evidence Traceability
+
+CYBER HAK uses evidence traceability to separate statements of design from statements supported by implementation, validation, runtime or production evidence.
+
+Classification: PUBLIC
+
+## Evidence Levels
+
+### E0 — Architecture
+
+The concept, control or relationship is documented.
+
+E0 does not prove implementation.
+
+### E1 — Specification
+
+Required behavior, structure or policy is defined precisely enough for implementation or validation.
+
+E1 does not prove implementation.
+
+### E2 — Implementation
+
+A corresponding repository artifact, script, registry or implementation exists.
+
+E2 does not prove successful execution.
+
+### E3 — Validation
+
+Defined static or reproducible validation has passed against the relevant artifact.
+
+E3 does not prove live runtime behavior.
+
+### E4 — Runtime Verification
+
+Evidence originates from an executed runtime or controlled runtime test.
+
+E4 must be supported by attributable runtime evidence.
+
+### E5 — Production Evidence
+
+Evidence originates from the authorized production environment.
+
+E5 must never be inferred from architecture, documentation, CI or local testing.
+
+## Production Authorization
+
+Production authorization is separate from evidence level.
+
+E5 != AUTOMATIC_PRODUCTION_AUTHORIZATION
+
+Production authorization requires explicit authority.
+
+## Evidence Record
+
+A public-safe evidence reference may contain:
+
+- evidence identifier
+- artifact identifier
+- control identifier
+- timestamp
+- evidence level
+- verification method
+- status
+- provenance
+- integrity reference
+- classification
+- related commit or version where applicable
+
+## Forbidden Evidence Inflation
+
+CYBER HAK must not claim:
+
+- architecture as implementation
+- implementation as validation
+- validation as runtime verification
+- runtime verification as production evidence
+- production evidence as production authorization
+
+## Evidence State Rules
+
+UNKNOWN != PASS
+
+ABSENT != VERIFIED
+
+PARTIAL != COMPLETE
+
+LOCAL != PRODUCTION
+
+SIMULATION != LIVE PRODUCTION
+
+DOCUMENTED != EXECUTED
+
+## Public Evidence Boundary
+
+Do not publish:
+
+- secrets
+- credentials
+- access tokens
+- private keys
+- seed phrases
+- PRIVATE HANTER runtime material
+- private Audit Ledger records
+- sensitive forensic evidence
+- private production topology
+
+## Truth Boundary
+
+PUBLIC EVIDENCE MODEL = DEFINED
+
+PUBLIC EVIDENCE LEVELS = E0 THROUGH E5
+
+LIVE PRODUCTION EVIDENCE = NOT_VERIFIED
+
+PRODUCTION AUTHORIZATION = NOT_AUTHORIZED
+
+
+========================================
+registry/CONTROL-COVERAGE.json
+========================================
+
+{
+  "registry": "CYBER HAK Control Coverage",
+  "classification": "PUBLIC",
+  "version": "1.0.0",
+  "total_traceability_domains": 9,
+  "evidence_levels": 6,
+  "highest_public_claimed_evidence_level": "E2_IMPLEMENTATION_WHERE_ARTIFACT_EXISTS",
+  "runtime_verification": "NOT_VERIFIED_BY_THIS_PUBLIC_REPOSITORY",
+  "production_authorization": "NOT_AUTHORIZED",
+  "domains": [
+    {
+      "id": "TR-01",
+      "name": "Governance",
+      "status": "DEFINED",
+      "primary_artifacts": [
+        "docs/GOVERNANCE.md",
+        "docs/PUBLIC-PRIVATE-BOUNDARY.md"
+      ]
+    },
+    {
+      "id": "TR-02",
+      "name": "Capability Governance",
+      "status": "DEFINED",
+      "primary_artifacts": [
+        "docs/CAPABILITY-REGISTRY.md",
+        "docs/SECURITY-TIERS.md",
+        "registry/CAPABILITY-FAMILIES.json"
+      ]
+    },
+    {
+      "id": "TR-03",
+      "name": "Threat Architecture",
+      "status": "DEFINED",
+      "primary_artifacts": [
+        "docs/THREAT-MODEL.md",
+        "docs/ATTACK-SURFACE-MODEL.md",
+        "registry/THREAT-CATEGORIES.json"
+      ]
+    },
+    {
+      "id": "TR-04",
+      "name": "Incident Response & Forensics",
+      "status": "DEFINED",
+      "primary_artifacts": [
+        "docs/INCIDENT-RESPONSE.md",
+        "docs/FORENSIC-EVIDENCE.md",
+        "registry/INCIDENT-SEVERITY.json"
+      ]
+    },
+    {
+      "id": "TR-05",
+      "name": "Continuous Security Assurance",
+      "status": "DEFINED",
+      "primary_artifacts": [
+        "docs/CONTINUOUS-SECURITY-ASSURANCE.md",
+        "docs/SECURITY-OBSERVABILITY.md",
+        "registry/ASSURANCE-CONTROLS.json"
+      ]
+    },
+    {
+      "id": "TR-06",
+      "name": "Software Supply Chain Security",
+      "status": "DEFINED",
+      "primary_artifacts": [
+        "docs/SOFTWARE-SUPPLY-CHAIN-SECURITY.md",
+        "docs/DEPENDENCY-PROVENANCE.md",
+        "registry/SUPPLY-CHAIN-CONTROLS.json"
+      ]
+    },
+    {
+      "id": "TR-07",
+      "name": "Data Protection & Secrets Security",
+      "status": "DEFINED",
+      "primary_artifacts": [
+        "docs/DATA-PROTECTION.md",
+        "docs/SECRETS-SECURITY.md",
+        "registry/DATA-PROTECTION-CONTROLS.json"
+      ]
+    },
+    {
+      "id": "TR-08",
+      "name": "Resilience & Recovery",
+      "status": "DEFINED",
+      "primary_artifacts": [
+        "docs/RESILIENCE-SECURITY.md",
+        "docs/BACKUP-RECOVERY-SECURITY.md",
+        "registry/RESILIENCE-CONTROLS.json"
+      ]
+    },
+    {
+      "id": "TR-09",
+      "name": "Public Validation",
+      "status": "IMPLEMENTED",
+      "primary_artifacts": [
+        "docs/PUBLIC-VALIDATION.md",
+        "registry/VALIDATION-CHECKS.json",
+        "scripts/validate_public_baseline.py",
+        ".github/workflows/public-validation.yml"
+      ]
+    }
+  ],
+  "evidence_model": [
+    {
+      "id": "E0",
+      "name": "Architecture"
+    },
+    {
+      "id": "E1",
+      "name": "Specification"
+    },
+    {
+      "id": "E2",
+      "name": "Implementation"
+    },
+    {
+      "id": "E3",
+      "name": "Validation"
+    },
+    {
+      "id": "E4",
+      "name": "Runtime Verification"
+    },
+    {
+      "id": "E5",
+      "name": "Production Evidence"
+    }
+  ]
+}
+
+
+========================================
+README.md — ADD
+========================================
+
+## Control & Evidence Traceability
+
+CYBER HAK maintains explicit traceability between architecture, control registries, validation artifacts and evidence levels.
+
+- [Security Control Traceability](docs/CONTROL-TRACEABILITY.md)
+- [Evidence Traceability](docs/EVIDENCE-TRACEABILITY.md)
+- [Control Coverage JSON](registry/CONTROL-COVERAGE.json)
+
+CLAIM != EVIDENCE
+
+DOCUMENTED != IMPLEMENTED
+
+VALIDATED != RUNTIME VERIFIED
+
+RUNTIME VERIFIED != PRODUCTION AUTHORIZED
+
+
+========================================
+PUBLIC-MANIFEST.json — ADD
+========================================
+
+"control_traceability": "DEFINED",
+"evidence_traceability": "DEFINED",
+"traceability_domains": 9,
+"evidence_levels": 6,
+"public_evidence_model": "E0_E5",
+"runtime_verification": "NOT_VERIFIED_BY_PUBLIC_REPOSITORY",
+"live_production_control_evidence": "NOT_VERIFIED",
+"production_authorization": "NOT_AUTHORIZED"
+🌎
