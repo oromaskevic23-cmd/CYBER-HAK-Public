@@ -15,5 +15,8 @@
   "private_hanter_runtime_published": false,
   "private_runtime_wiring_status": "NOT_VERIFIED_BY_PUBLIC_REPOSITORY",
   "live_production_runtime": "NOT_VERIFIED",
-  "production_authorization": "NOT_AUTHORIZED"
+  "production_authorization": "NOT_AUTHORIZED",
+  "capability_registry": "DEFINED",
+  "capability_family_registry": "DEFINED",
+  "security_tiers": "DEFINED"
 }
