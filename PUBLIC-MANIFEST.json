@@ -1,0 +1,19 @@
+{
+  "name": "CYBER HAK Public",
+  "classification": "PUBLIC",
+  "author": "Alexander Romaskevich",
+  "author_role": "Founder • Owner • CEO • Chief Systems Architect of IMPERIAL Core",
+  "parent_architecture": "HANTER",
+  "hanter_role": "AI Command Center / Deputy to the Architect",
+  "security_orchestrator": "SECURITY-ORCHESTRATOR-01",
+  "security_nca": 10,
+  "governed_security_skills": 512,
+  "capability_families": 59,
+  "default_policy": "DENY",
+  "t3_policy": "ALWAYS_DENY",
+  "public_repository": true,
+  "private_hanter_runtime_published": false,
+  "private_runtime_wiring_status": "NOT_VERIFIED_BY_PUBLIC_REPOSITORY",
+  "live_production_runtime": "NOT_VERIFIED",
+  "production_authorization": "NOT_AUTHORIZED"
+}
