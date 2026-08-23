@@ -2570,4 +2570,492 @@ PUBLIC-MANIFEST.json — ADD
 "live_failover": "NOT_VERIFIED",
 "live_disaster_recovery": "NOT_VERIFIED",
 "production_resilience_enforcement": "NOT_VERIFIED"
+CREATE:
+
+docs/ARCHITECTURE-INDEX.md
+docs/CANONICAL-PUBLIC-BASELINE.md
+registry/PUBLIC-BASELINE.json
+
+UPDATE:
+
+README.md
+PUBLIC-MANIFEST.json
+
+========================================
+docs/ARCHITECTURE-INDEX.md
+========================================
+
+# CYBER HAK Architecture Index
+
+CYBER HAK is the governed defensive-security architecture of IMPERIAL Core.
+
+Classification: PUBLIC  
+Author: Alexander Romaskevich  
+Parent Architecture: HANTER  
+Architecture Status: DEFINED  
+Production Authorization: NOT_AUTHORIZED
+
+## Canonical Hierarchy
+
+Architect  
+→ HANTER  
+→ SECURITY-ORCHESTRATOR-01  
+→ 10 Security Nano Core Agents  
+→ Governed Security Capabilities
+
+## Canonical Governance Chain
+
+AI Passport  
+→ Enterprise IMPERIAL Skills (EIS)  
+→ Guardian Core  
+→ Approval Gateway  
+→ Runtime Domain  
+→ Audit Ledger
+
+## Permanent Zero-Trust Laws
+
+Identity != Authority
+
+Capability != Approval
+
+Intelligence != Privilege
+
+Knowledge != Permission
+
+Discovery != Authorization
+
+Unknown != Pass
+
+## Security Nano Core Agents
+
+01 — SENTINEL  
+02 — VULCAN  
+03 — CERBERUS  
+04 — AEGIS  
+05 — BASTION  
+06 — ARGUS  
+07 — MINERVA  
+08 — FORENSIC  
+09 — REDSHIELD  
+10 — GUARDIAN-SEC
+
+Fleet index:
+
+[Security NCA Fleet Index](../agents/README.md)
+
+## Governance
+
+- [Governance](GOVERNANCE.md)
+- [Public / Private Boundary](PUBLIC-PRIVATE-BOUNDARY.md)
+
+## Capability Architecture
+
+- [Capability Registry](CAPABILITY-REGISTRY.md)
+- [Security Activity Tiers](SECURITY-TIERS.md)
+- [Capability Families JSON](../registry/CAPABILITY-FAMILIES.json)
+
+Canonical scale:
+
+Security NCA = 10  
+Governed Security Skills = 512  
+Capability Families = 59  
+Default Policy = DENY  
+T3 = ALWAYS DENY
+
+The value 512 represents the declared governed capability-model scale.
+
+It does not mean 512 unrestricted executable public tools.
+
+## Threat Architecture
+
+- [Threat Model](THREAT-MODEL.md)
+- [Attack Surface Model](ATTACK-SURFACE-MODEL.md)
+- [Threat Categories JSON](../registry/THREAT-CATEGORIES.json)
+
+Threat Categories = 30
+
+## Incident Response & Forensics
+
+- [Incident Response](INCIDENT-RESPONSE.md)
+- [Forensic Evidence Model](FORENSIC-EVIDENCE.md)
+- [Incident Severity JSON](../registry/INCIDENT-SEVERITY.json)
+
+Incident Phases = 9  
+Severity Levels = 5
+
+Critical escalation:
+
+SEV-4 = HANTER_AND_ARCHITECT_ESCALATION
+
+## Continuous Security Assurance
+
+- [Continuous Security Assurance](CONTINUOUS-SECURITY-ASSURANCE.md)
+- [Security Observability](SECURITY-OBSERVABILITY.md)
+- [Assurance Controls JSON](../registry/ASSURANCE-CONTROLS.json)
+
+Assurance Controls = 12  
+Observability Signal Classes = 8  
+Security Drift Categories = 10
+
+Permanent rule:
+
+UNKNOWN != PASS
+
+## Software Supply Chain Security
+
+- [Software Supply Chain Security](SOFTWARE-SUPPLY-CHAIN-SECURITY.md)
+- [Dependency Provenance](DEPENDENCY-PROVENANCE.md)
+- [Supply Chain Controls JSON](../registry/SUPPLY-CHAIN-CONTROLS.json)
+
+Supply Chain Controls = 14
+
+Permanent rule:
+
+PUBLIC SOURCE != TRUSTED EXECUTABLE
+
+## Data Protection & Secrets Security
+
+- [Data Protection](DATA-PROTECTION.md)
+- [Secrets Security](SECRETS-SECURITY.md)
+- [Data Protection Controls JSON](../registry/DATA-PROTECTION-CONTROLS.json)
+
+Data Protection Controls = 12  
+Secrets Controls = 10
+
+Classification:
+
+PUBLIC  
+PRIVATE  
+SECRET  
+RESTRICTED
+
+Permanent rules:
+
+UNKNOWN_CLASSIFICATION != PUBLIC
+
+PUBLIC_REPOSITORY != SECRET_STORE
+
+AUTONOMOUS_WALLET_AUTHORITY = DENIED
+
+## Resilience, Backup & Recovery
+
+- [Resilience Security](RESILIENCE-SECURITY.md)
+- [Backup & Recovery Security](BACKUP-RECOVERY-SECURITY.md)
+- [Resilience Controls JSON](../registry/RESILIENCE-CONTROLS.json)
+
+Resilience Controls = 12  
+Backup Controls = 12
+
+Permanent rules:
+
+BACKUP != RECOVERY
+
+RESTORE != VERIFICATION
+
+RECOVERED != VERIFIED
+
+## Public Validation
+
+- [Public Validation](PUBLIC-VALIDATION.md)
+- [Validation Checks JSON](../registry/VALIDATION-CHECKS.json)
+- [Public Baseline Validator](../scripts/validate_public_baseline.py)
+- [Public Validation Workflow](../.github/workflows/public-validation.yml)
+
+Validation Checks = 18
+
+CI PASS != RUNTIME VERIFICATION
+
+CI PASS != PRODUCTION AUTHORIZATION
+
+## Truth Boundary
+
+Architecture != Specification
+
+Specification != Implementation
+
+Implementation != Testing
+
+Testing != Runtime Verification
+
+Runtime Verification != Production Authorization
+
+## Canonical Public Status
+
+PUBLIC ARCHITECTURE = DEFINED
+
+PUBLIC DOCUMENTATION BASELINE = DEFINED
+
+PUBLIC VALIDATION LOGIC = IMPLEMENTED
+
+PUBLIC CI WORKFLOW = IMPLEMENTED
+
+PRIVATE HANTER RUNTIME WIRING = NOT VERIFIED BY THIS PUBLIC REPOSITORY
+
+LIVE PRODUCTION RUNTIME = NOT VERIFIED
+
+PRODUCTION AUTHORIZATION = NOT_AUTHORIZED
+
+Architecture Before Implementation.
+
+Evidence Before Claims.
+
+
+========================================
+docs/CANONICAL-PUBLIC-BASELINE.md
+========================================
+
+# CYBER HAK Canonical Public Baseline
+
+Baseline: CYBER-HAK-PUBLIC-1.0  
+Classification: PUBLIC  
+Status: CANONICAL PUBLIC ARCHITECTURE BASELINE  
+Author: Alexander Romaskevich
+
+## Purpose
+
+This document freezes the declared CYBER HAK public architecture baseline and separates public architectural evidence from private runtime implementation and production authorization.
+
+## Baseline Components
+
+### Command Structure
+
+HANTER instances in this architecture: 1
+
+Security Orchestrators represented in this public domain: 1
+
+Security Nano Core Agents: 10
+
+### Capability Model
+
+Governed Security Skills: 512
+
+Capability Families: 59
+
+Default Policy: DENY
+
+T3 Autonomous Activity: ALWAYS DENY
+
+### Threat Model
+
+Threat Categories: 30
+
+### Incident Response
+
+Incident Phases: 9
+
+Severity Levels: 5
+
+### Assurance & Observability
+
+Assurance Controls: 12
+
+Signal Classes: 8
+
+Drift Categories: 10
+
+### Supply Chain
+
+Supply Chain Controls: 14
+
+### Data & Secrets
+
+Data Protection Controls: 12
+
+Secrets Controls: 10
+
+Classification Levels: 4
+
+### Resilience
+
+Resilience Controls: 12
+
+Backup Controls: 12
+
+### Public Validation
+
+Validation Checks: 18
+
+## Canonical Security Invariants
+
+1. Identity does not create authority.
+2. Capability does not create approval.
+3. Intelligence does not create privilege.
+4. Discovery does not create authorization.
+5. Missing evidence does not create PASS.
+6. UNKNOWN does not create PASS.
+7. Public source does not create trusted executable status.
+8. Backup does not prove recoverability.
+9. Restore does not prove verification.
+10. CI success does not create production authorization.
+11. Private keys and seed phrases must not be published.
+12. Autonomous wallet authority is denied.
+13. T3 autonomous prohibited activity is always denied.
+14. Privileged remediation remains governance-controlled.
+15. Production claims require production evidence.
+
+## Public / Private Boundary
+
+The public baseline may contain:
+
+- architecture
+- governance models
+- defensive capability taxonomy
+- public registries
+- validation logic
+- documentation
+- public-safe workflow definitions
+
+The public baseline must not contain:
+
+- PRIVATE HANTER runtime source
+- production credentials
+- API secrets
+- access tokens
+- passwords
+- private keys
+- seed phrases
+- private authorization material
+- private Audit Ledger records
+- private infrastructure topology
+- sensitive incident evidence
+
+## Evidence Levels
+
+ARCHITECTURE = documented design
+
+IMPLEMENTED = artifact exists in repository
+
+VALIDATED = artifact passes defined repository validation
+
+RUNTIME VERIFIED = requires evidence from a real executed runtime
+
+PRODUCTION AUTHORIZED = requires separate explicit authorization
+
+No lower evidence level implies a higher evidence level.
+
+## Release Boundary
+
+CYBER-HAK-PUBLIC-1.0 establishes the canonical public architecture baseline.
+
+It does not claim:
+
+- deployment of PRIVATE HANTER runtime wiring
+- live SOC or SIEM operation
+- live production monitoring
+- live DLP
+- live key-management infrastructure
+- live disaster recovery
+- live supply-chain enforcement
+- production authorization
+
+## Final Baseline Status
+
+PUBLIC ARCHITECTURE = DEFINED
+
+PUBLIC GOVERNANCE MODEL = DEFINED
+
+PUBLIC SECURITY REGISTRIES = DEFINED
+
+PUBLIC VALIDATION SCRIPT = IMPLEMENTED
+
+PUBLIC CI WORKFLOW = IMPLEMENTED
+
+PRIVATE RUNTIME = NOT VERIFIED BY THIS PUBLIC REPOSITORY
+
+LIVE PRODUCTION RUNTIME = NOT VERIFIED
+
+PRODUCTION AUTHORIZATION = NOT_AUTHORIZED
+
+
+========================================
+registry/PUBLIC-BASELINE.json
+========================================
+
+{
+  "baseline": "CYBER-HAK-PUBLIC-1.0",
+  "classification": "PUBLIC",
+  "status": "CANONICAL_PUBLIC_ARCHITECTURE_BASELINE",
+  "author": "Alexander Romaskevich",
+  "parent_architecture": "HANTER",
+  "hanter_instances": 1,
+  "security_orchestrators": 1,
+  "security_orchestrator_id": "SECURITY-ORCHESTRATOR-01",
+  "security_nca": 10,
+  "governed_security_skills": 512,
+  "capability_families": 59,
+  "threat_categories": 30,
+  "incident_response_phases": 9,
+  "incident_severity_levels": 5,
+  "assurance_controls": 12,
+  "observability_signal_classes": 8,
+  "security_drift_categories": 10,
+  "supply_chain_controls": 14,
+  "data_protection_controls": 12,
+  "secrets_controls": 10,
+  "classification_levels": 4,
+  "resilience_controls": 12,
+  "backup_controls": 12,
+  "validation_checks": 18,
+  "default_policy": "DENY",
+  "t3_policy": "ALWAYS_DENY",
+  "unknown_is_pass": false,
+  "unknown_classification_is_public": false,
+  "public_source_is_trusted_executable": false,
+  "backup_equals_recovery": false,
+  "restore_equals_verification": false,
+  "autonomous_wallet_authority": "DENIED",
+  "public_validation_script": "IMPLEMENTED",
+  "public_ci_workflow": "IMPLEMENTED",
+  "private_hanter_runtime_published": false,
+  "private_runtime_wiring_status": "NOT_VERIFIED_BY_PUBLIC_REPOSITORY",
+  "live_production_runtime": "NOT_VERIFIED",
+  "production_authorization": "NOT_AUTHORIZED"
+}
+
+
+========================================
+README.md — ADD
+========================================
+
+## Canonical Public Baseline
+
+CYBER HAK Public is organized as a governed defensive-security architecture with explicit evidence and production truth boundaries.
+
+- [Architecture Index](docs/ARCHITECTURE-INDEX.md)
+- [Canonical Public Baseline](docs/CANONICAL-PUBLIC-BASELINE.md)
+- [Public Baseline JSON](registry/PUBLIC-BASELINE.json)
+
+Baseline:
+
+CYBER-HAK-PUBLIC-1.0
+
+Status:
+
+CANONICAL PUBLIC ARCHITECTURE BASELINE
+
+PUBLIC ARCHITECTURE = DEFINED
+
+PRIVATE HANTER RUNTIME WIRING = NOT VERIFIED BY THIS PUBLIC REPOSITORY
+
+LIVE PRODUCTION RUNTIME = NOT VERIFIED
+
+PRODUCTION AUTHORIZATION = NOT_AUTHORIZED
+
+
+========================================
+PUBLIC-MANIFEST.json — ADD
+========================================
+
+"canonical_public_baseline": "CYBER-HAK-PUBLIC-1.0",
+"canonical_public_baseline_status": "DEFINED",
+"architecture_index": "DEFINED",
+"public_baseline_registry": "DEFINED",
+"hanter_instances": 1,
+"security_orchestrators": 1,
+"public_validation_script": "IMPLEMENTED",
+"public_ci_workflow": "IMPLEMENTED",
+"private_hanter_runtime_published": false,
+"private_runtime_wiring_status": "NOT_VERIFIED_BY_PUBLIC_REPOSITORY",
+"live_production_runtime": "NOT_VERIFIED",
+"production_authorization": "NOT_AUTHORIZED"
 
