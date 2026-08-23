@@ -1023,4 +1023,506 @@ PUBLIC-MANIFEST.json — ADD
 "unknown_is_pass": false,
 "live_telemetry_pipeline": "NOT_VERIFIED",
 "production_monitoring": "NOT_VERIFIED"
---- 
+
+CREATE:
+
+docs/SOFTWARE-SUPPLY-CHAIN-SECURITY.md
+docs/DEPENDENCY-PROVENANCE.md
+registry/SUPPLY-CHAIN-CONTROLS.json
+
+UPDATE:
+
+README.md
+PUBLIC-MANIFEST.json
+
+========================================
+docs/SOFTWARE-SUPPLY-CHAIN-SECURITY.md
+========================================
+
+# CYBER HAK Software Supply Chain Security
+
+CYBER HAK defines a governed defensive model for protecting source inputs, dependencies, build artifacts and software provenance.
+
+Classification: PUBLIC
+
+This document defines architecture and verification requirements only.
+
+LIVE PRODUCTION SUPPLY-CHAIN ENFORCEMENT = NOT_VERIFIED
+PRODUCTION AUTHORIZATION = NOT_AUTHORIZED
+
+## Core Principles
+
+- Source Is Not Trust
+- Dependency Is Not Authorization
+- Signature Is Not Provenance By Itself
+- Hash Is Not Trust By Itself
+- Public Source Is Not Trusted Executable
+- Unknown Provenance Is Not Pass
+- Dependency Change Requires Evidence
+- Build Evidence Must Be Attributable
+- Verification Precedes Promotion
+
+## Governed Supply Chain
+
+SOURCE
+→ IDENTIFY
+→ CLASSIFY
+→ VERIFY PROVENANCE
+→ VERIFY INTEGRITY
+→ EVALUATE POLICY
+→ BUILD
+→ VERIFY ARTIFACT
+→ RECORD EVIDENCE
+→ PROMOTE OR DENY
+
+## Supply Chain Control Domains
+
+### SC-01 — Source Provenance
+
+Objective:
+Verify the declared origin and attribution of source material.
+
+Required evidence:
+repository identity, source reference, version or commit identity, provenance metadata.
+
+Failure condition:
+source origin cannot be established or conflicts with declared authority.
+
+Default response:
+DENY → RECORD → ESCALATE_FOR_AUTHORIZED_REVIEW
+
+### SC-02 — Source Integrity
+
+Objective:
+Verify source material has not changed outside the expected controlled state.
+
+Required evidence:
+content hashes, immutable source references and comparison evidence.
+
+Failure condition:
+unexpected source mutation or integrity mismatch.
+
+Default response:
+DENY → RECORD → ESCALATE_FOR_AUTHORIZED_REVIEW
+
+### SC-03 — Dependency Inventory
+
+Objective:
+Maintain an attributable inventory of direct and transitive dependencies.
+
+Required evidence:
+dependency names, versions, source origin and relationship metadata.
+
+Failure condition:
+unidentified or untracked dependency enters governed scope.
+
+Default response:
+DENY → RECORD → ESCALATE_FOR_AUTHORIZED_REVIEW
+
+### SC-04 — Dependency Provenance
+
+Objective:
+Verify dependency origin before governed acceptance.
+
+Required evidence:
+package source, repository or registry origin, version identity and provenance metadata.
+
+Failure condition:
+dependency provenance is unknown, conflicting or unverifiable.
+
+Default response:
+DENY → RECORD → ESCALATE_FOR_AUTHORIZED_REVIEW
+
+### SC-05 — Dependency Integrity
+
+Objective:
+Verify dependency bytes against expected integrity evidence.
+
+Required evidence:
+cryptographic hash or equivalent integrity metadata.
+
+Failure condition:
+integrity mismatch or unavailable required verification evidence.
+
+Default response:
+DENY → RECORD → ESCALATE_FOR_AUTHORIZED_REVIEW
+
+### SC-06 — License & Attribution Assurance
+
+Objective:
+Ensure third-party material is used with appropriate attribution and license awareness.
+
+Required evidence:
+license metadata, attribution requirements and review state.
+
+Failure condition:
+license status is unknown or incompatible with intended use.
+
+Default response:
+DENY_PROMOTION → RECORD → ESCALATE_FOR_AUTHORIZED_REVIEW
+
+### SC-07 — Vulnerability Evidence
+
+Objective:
+Evaluate known defensive vulnerability evidence associated with dependencies.
+
+Required evidence:
+scanner results, advisory identifiers, affected version information and review state.
+
+Failure condition:
+unresolved policy-blocking vulnerability evidence exists.
+
+Default response:
+DENY_PROMOTION → RECORD → ESCALATE_FOR_AUTHORIZED_REVIEW
+
+### SC-08 — Build Input Integrity
+
+Objective:
+Ensure governed builds consume only expected inputs.
+
+Required evidence:
+source identity, dependency lock state, configuration hashes and build input manifest.
+
+Failure condition:
+unexpected build input or uncontrolled dependency resolution occurs.
+
+Default response:
+DENY → RECORD → ESCALATE_FOR_AUTHORIZED_REVIEW
+
+### SC-09 — Build Reproducibility Evidence
+
+Objective:
+Provide evidence sufficient to compare governed build outputs when reproducibility is expected.
+
+Required evidence:
+build parameters, source reference, dependency state and output hashes.
+
+Failure condition:
+required build evidence is absent or outputs materially diverge without explanation.
+
+Default response:
+FAIL → RECORD → ESCALATE_FOR_AUTHORIZED_REVIEW
+
+### SC-10 — Artifact Integrity
+
+Objective:
+Verify produced artifacts remain bound to expected build output.
+
+Required evidence:
+artifact identity, hash, build reference and provenance record.
+
+Failure condition:
+artifact integrity cannot be established.
+
+Default response:
+DENY_PROMOTION → RECORD → ESCALATE_FOR_AUTHORIZED_REVIEW
+
+### SC-11 — Artifact Provenance
+
+Objective:
+Bind artifacts to the source and governed process that produced them.
+
+Required evidence:
+source reference, build identity, artifact hash and provenance chain.
+
+Failure condition:
+artifact cannot be attributed to an approved source/build context.
+
+Default response:
+DENY_PROMOTION → RECORD → ESCALATE_FOR_AUTHORIZED_REVIEW
+
+### SC-12 — Configuration Integrity
+
+Objective:
+Detect unauthorized changes to build and dependency configuration.
+
+Required evidence:
+configuration hashes, versioned configuration and change attribution.
+
+Failure condition:
+unapproved or unattributed configuration drift occurs.
+
+Default response:
+DENY → RECORD → ESCALATE_FOR_AUTHORIZED_REVIEW
+
+### SC-13 — Promotion Gate Integrity
+
+Objective:
+Ensure software promotion occurs only after required verification gates.
+
+Required evidence:
+policy result, verification state, evidence references and approval state.
+
+Failure condition:
+artifact promotion bypasses a required gate.
+
+Default response:
+DENY → RECORD → ESCALATE_FOR_AUTHORIZED_REVIEW
+
+### SC-14 — Supply Chain Evidence Integrity
+
+Objective:
+Ensure supply-chain verification evidence remains attributable and integrity-protected.
+
+Required evidence:
+timestamps, hashes, provenance, source identifiers and Audit Ledger references where applicable.
+
+Failure condition:
+evidence is missing, corrupted, unverifiable or contradictory.
+
+Default response:
+UNKNOWN_OR_FAIL → DENY_PROMOTION → RECORD → ESCALATE_FOR_AUTHORIZED_REVIEW
+
+## Third-Party Source Boundary
+
+Public ecosystems may be referenced for defensive taxonomy, research and verification.
+
+Examples include:
+
+MITRE ATT&CK
+OWASP
+SigmaHQ
+ProjectDiscovery / Nuclei
+Atomic Red Team
+Trivy
+Kubescape
+Gitleaks
+OSV
+Semgrep
+
+Permanent rule:
+
+PUBLIC SOURCE != TRUSTED EXECUTABLE
+
+External code, rules or templates require license, attribution, integrity and governance review before adoption.
+
+## Truth Boundary
+
+PUBLIC SUPPLY CHAIN MODEL = DEFINED
+LIVE DEPENDENCY ENFORCEMENT = NOT_VERIFIED
+LIVE BUILD PROVENANCE PIPELINE = NOT_VERIFIED
+PRODUCTION SUPPLY CHAIN ENFORCEMENT = NOT_VERIFIED
+PRODUCTION AUTHORIZATION = NOT_AUTHORIZED
+
+
+========================================
+docs/DEPENDENCY-PROVENANCE.md
+========================================
+
+# CYBER HAK Dependency Provenance
+
+Dependency provenance establishes attributable evidence about where a software dependency originated, which version was evaluated and how its integrity was verified.
+
+Classification: PUBLIC
+
+## Minimum Provenance Record
+
+A governed dependency record should contain:
+
+- dependency identifier
+- dependency name
+- version
+- source type
+- source location identifier
+- source reference or release identifier
+- integrity hash where available
+- license metadata
+- verification timestamp
+- verification state
+- vulnerability-review state
+- provenance status
+- evidence references
+
+## Provenance States
+
+VERIFIED — required provenance evidence is available and consistent.
+
+PARTIAL — some required evidence exists but is incomplete.
+
+FAILED — evidence contradicts policy or integrity expectations.
+
+UNKNOWN — sufficient provenance evidence is unavailable.
+
+UNKNOWN != VERIFIED
+
+PARTIAL != VERIFIED
+
+## Dependency Decision
+
+DISCOVER
+→ IDENTIFY
+→ VERIFY SOURCE
+→ VERIFY VERSION
+→ VERIFY INTEGRITY
+→ REVIEW LICENSE
+→ REVIEW VULNERABILITY EVIDENCE
+→ APPLY POLICY
+→ RECORD
+→ ACCEPT OR DENY
+
+## Prohibited Assumptions
+
+- popularity does not imply trust
+- public availability does not imply authorization
+- package-manager presence does not imply provenance
+- signature presence alone does not prove trust
+- a matching name does not prove package identity
+- latest version does not automatically mean safest version
+
+## Sensitive Information Boundary
+
+Public provenance records must not expose:
+
+- credentials
+- access tokens
+- private registry credentials
+- private repository tokens
+- private infrastructure topology
+- private package endpoints
+- PRIVATE HANTER runtime source
+
+## Truth Boundary
+
+DEPENDENCY PROVENANCE MODEL = DEFINED
+LIVE DEPENDENCY INVENTORY = NOT_VERIFIED
+LIVE SBOM PIPELINE = NOT_VERIFIED
+LIVE PROVENANCE SERVICE = NOT_VERIFIED
+PRODUCTION AUTHORIZATION = NOT_AUTHORIZED
+
+
+========================================
+registry/SUPPLY-CHAIN-CONTROLS.json
+========================================
+
+{
+  "registry": "CYBER HAK Supply Chain Controls",
+  "classification": "PUBLIC",
+  "version": "1.0.0",
+  "total_supply_chain_controls": 14,
+  "default_policy": "DENY",
+  "unknown_provenance_is_pass": false,
+  "public_source_is_trusted_executable": false,
+  "production_enforcement": "NOT_VERIFIED",
+  "controls": [
+    {
+      "id": "SC-01",
+      "name": "Source Provenance",
+      "purpose": "Verify the declared origin and attribution of source material.",
+      "default_response": "DENY_RECORD_ESCALATE"
+    },
+    {
+      "id": "SC-02",
+      "name": "Source Integrity",
+      "purpose": "Verify source material against expected integrity evidence.",
+      "default_response": "DENY_RECORD_ESCALATE"
+    },
+    {
+      "id": "SC-03",
+      "name": "Dependency Inventory",
+      "purpose": "Maintain an attributable inventory of governed dependencies.",
+      "default_response": "DENY_RECORD_ESCALATE"
+    },
+    {
+      "id": "SC-04",
+      "name": "Dependency Provenance",
+      "purpose": "Verify dependency origin before governed acceptance.",
+      "default_response": "DENY_RECORD_ESCALATE"
+    },
+    {
+      "id": "SC-05",
+      "name": "Dependency Integrity",
+      "purpose": "Verify dependency bytes against expected integrity evidence.",
+      "default_response": "DENY_RECORD_ESCALATE"
+    },
+    {
+      "id": "SC-06",
+      "name": "License & Attribution Assurance",
+      "purpose": "Require appropriate license awareness and attribution review.",
+      "default_response": "DENY_PROMOTION_RECORD_ESCALATE"
+    },
+    {
+      "id": "SC-07",
+      "name": "Vulnerability Evidence",
+      "purpose": "Evaluate known defensive vulnerability evidence associated with dependencies.",
+      "default_response": "DENY_PROMOTION_RECORD_ESCALATE"
+    },
+    {
+      "id": "SC-08",
+      "name": "Build Input Integrity",
+      "purpose": "Ensure governed builds consume only expected inputs.",
+      "default_response": "DENY_RECORD_ESCALATE"
+    },
+    {
+      "id": "SC-09",
+      "name": "Build Reproducibility Evidence",
+      "purpose": "Preserve evidence needed to compare governed build outputs.",
+      "default_response": "FAIL_RECORD_ESCALATE"
+    },
+    {
+      "id": "SC-10",
+      "name": "Artifact Integrity",
+      "purpose": "Verify produced artifacts remain bound to expected build output.",
+      "default_response": "DENY_PROMOTION_RECORD_ESCALATE"
+    },
+    {
+      "id": "SC-11",
+      "name": "Artifact Provenance",
+      "purpose": "Bind artifacts to the source and governed process that produced them.",
+      "default_response": "DENY_PROMOTION_RECORD_ESCALATE"
+    },
+    {
+      "id": "SC-12",
+      "name": "Configuration Integrity",
+      "purpose": "Detect unauthorized changes to build and dependency configuration.",
+      "default_response": "DENY_RECORD_ESCALATE"
+    },
+    {
+      "id": "SC-13",
+      "name": "Promotion Gate Integrity",
+      "purpose": "Ensure software promotion occurs only after required verification gates.",
+      "default_response": "DENY_RECORD_ESCALATE"
+    },
+    {
+      "id": "SC-14",
+      "name": "Supply Chain Evidence Integrity",
+      "purpose": "Protect provenance and verification evidence from missing or unverifiable state.",
+      "default_response": "DENY_PROMOTION_RECORD_ESCALATE"
+    }
+  ],
+  "provenance_states": [
+    "VERIFIED",
+    "PARTIAL",
+    "FAILED",
+    "UNKNOWN"
+  ]
+}
+
+
+========================================
+README.md — ADD
+========================================
+
+## Software Supply Chain Integrity
+
+CYBER HAK defines a governed defensive supply-chain model for source provenance, dependency integrity, build evidence and artifact promotion.
+
+- [Software Supply Chain Security](docs/SOFTWARE-SUPPLY-CHAIN-SECURITY.md)
+- [Dependency Provenance](docs/DEPENDENCY-PROVENANCE.md)
+- [Supply Chain Controls JSON](registry/SUPPLY-CHAIN-CONTROLS.json)
+
+PUBLIC SOURCE != TRUSTED EXECUTABLE
+
+
+========================================
+PUBLIC-MANIFEST.json — ADD
+========================================
+
+"software_supply_chain_security": "DEFINED",
+"dependency_provenance": "DEFINED",
+"supply_chain_controls": 14,
+"unknown_provenance_is_pass": false,
+"public_source_is_trusted_executable": false,
+"live_dependency_enforcement": "NOT_VERIFIED",
+"live_build_provenance_pipeline": "NOT_VERIFIED",
+"production_supply_chain_enforcement": "NOT_VERIFIED"
+
