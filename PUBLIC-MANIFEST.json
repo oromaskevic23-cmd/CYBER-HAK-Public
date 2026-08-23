@@ -18,5 +18,8 @@
   "production_authorization": "NOT_AUTHORIZED",
   "capability_registry": "DEFINED",
   "capability_family_registry": "DEFINED",
-  "security_tiers": "DEFINED"
+  "security_tiers": "DEFINED",
+  "threat_model": "DEFINED",
+  "attack_surface_model": "DEFINED",
+  "threat_categories": 30
 }

@@ -82,6 +82,9 @@ The registry represents defensive-security coverage and routing. It does not gra
 - [Capability Registry](docs/CAPABILITY-REGISTRY.md)
 - [Capability Families JSON](registry/CAPABILITY-FAMILIES.json)
 - [Security Activity Tiers](docs/SECURITY-TIERS.md)
+- [Threat Model](docs/THREAT-MODEL.md)
+- [Attack Surface Model](docs/ATTACK-SURFACE-MODEL.md)
+- [Threat Categories JSON](registry/THREAT-CATEGORIES.json)
 
 ---
 
