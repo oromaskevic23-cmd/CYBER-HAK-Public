@@ -12,14 +12,17 @@
   "default_policy": "DENY",
   "t3_policy": "ALWAYS_DENY",
   "public_repository": true,
-  "private_hanter_runtime_published": false,
-  "private_runtime_wiring_status": "NOT_VERIFIED_BY_PUBLIC_REPOSITORY",
-  "live_production_runtime": "NOT_VERIFIED",
-  "production_authorization": "NOT_AUTHORIZED",
   "capability_registry": "DEFINED",
   "capability_family_registry": "DEFINED",
   "security_tiers": "DEFINED",
   "threat_model": "DEFINED",
   "attack_surface_model": "DEFINED",
-  "threat_categories": 30
+  "threat_categories": 30,
+  "incident_response": "DEFINED",
+  "forensic_evidence_model": "DEFINED",
+  "incident_severity_levels": 5,
+  "private_hanter_runtime_published": false,
+  "private_runtime_wiring_status": "NOT_VERIFIED_BY_PUBLIC_REPOSITORY",
+  "live_production_runtime": "NOT_VERIFIED",
+  "production_authorization": "NOT_AUTHORIZED"
 }

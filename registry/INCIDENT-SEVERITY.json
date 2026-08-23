@@ -1,0 +1,48 @@
+{
+  "registry": "CYBER HAK Incident Severity",
+  "classification": "PUBLIC",
+  "version": "1.0.0",
+  "total_severity_levels": 5,
+  "levels": [
+    {
+      "id": "SEV-0",
+      "name": "Informational",
+      "impact": "No operational impact; informational security event or observation.",
+      "urgency": "LOW",
+      "escalation": "NO_MANDATORY_ESCALATION",
+      "evidence_requirement": "Basic telemetry, source, timestamp and contextual notes."
+    },
+    {
+      "id": "SEV-1",
+      "name": "Low",
+      "impact": "Minor and bounded security impact with no critical trust boundary affected.",
+      "urgency": "LOW",
+      "escalation": "SECURITY_NCA_REVIEW",
+      "evidence_requirement": "Timestamped logs, initial analysis and affected asset identification."
+    },
+    {
+      "id": "SEV-2",
+      "name": "Moderate",
+      "impact": "Localized security impact with potential policy, identity, data or runtime implications.",
+      "urgency": "MEDIUM",
+      "escalation": "SECURITY_ORCHESTRATOR_ESCALATION",
+      "evidence_requirement": "Correlated telemetry, containment status, analyst notes, scope assessment and initial timeline."
+    },
+    {
+      "id": "SEV-3",
+      "name": "High",
+      "impact": "Significant security impact affecting multiple systems, agents, runtime domains or trust boundaries.",
+      "urgency": "HIGH",
+      "escalation": "HANTER_ESCALATION",
+      "evidence_requirement": "Comprehensive evidence package, containment actions, detailed timeline, affected boundaries and remediation status."
+    },
+    {
+      "id": "SEV-4",
+      "name": "Critical",
+      "impact": "Critical security impact affecting core governance, production integrity, sensitive data, financial boundaries or system safety.",
+      "urgency": "IMMEDIATE",
+      "escalation": "HANTER_AND_ARCHITECT_ESCALATION",
+      "evidence_requirement": "Full forensic evidence package, chain-of-custody records, verified preservation artifacts, containment evidence and governance decision records."
+    }
+  ]
+}
