@@ -1,15 +1,7 @@
-name: CYBER HAK Defensive Reference CI
+name: CYBER HAK AuditShield CI
 on:
   push:
-    branches: [main]
-    paths:
-      - 'src/**'
-      - 'test/**'
-      - 'tools/**'
-      - 'registry/**'
-      - 'PUBLIC-MANIFEST.json'
-      - 'package.json'
-      - '.github/workflows/cyber-hak-ci.yml'
+    branches: [main, 'feat/auditshield-*']
   pull_request:
   workflow_dispatch:
 permissions:
@@ -30,5 +22,13 @@ jobs:
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: '22'
+      - name: Install locked parser without lifecycle scripts
+        run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Verify syntax, negative tests and public registries
         run: npm run verify
+      - name: Audit three authorized immutable public revisions using anonymous GETs
+        env:
+          AUDITSHIELD_SOURCE_COMMIT: ${{ github.sha }}
+        run: node tools/audit-github.mjs --targets config/audit-targets.json --out audit-output/ci
+      - name: Show redacted reports in job summary
+        run: cat audit-output/ci/*.md >> "$GITHUB_STEP_SUMMARY"

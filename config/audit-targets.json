@@ -1,0 +1,9 @@
+{
+  "mission_id": "IC-ASTRA-CYBER-HAK-GITHUB-AUDIT-20261024-002",
+  "authority": "Owner directive; read-only audit of these exact public revisions",
+  "targets": [
+    {"repository":"oromaskevic23-cmd/CYBER-HAK-Public","commit":"52241cf70ae5e9b8abd55c854b6aaedd52a6864d"},
+    {"repository":"oromaskevic23-cmd/CONSTRUCTOR-AI","commit":"31122d4f0fed5149daa193c1005cee7a513f292c"},
+    {"repository":"oromaskevic23-cmd/AGY---PUBLIC-","commit":"13a0835c3a6179e672e4fc6c5e44c0179d8fd372"}
+  ]
+}
