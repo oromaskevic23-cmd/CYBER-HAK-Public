@@ -1,0 +1,16 @@
+{
+  "name": "cyber-hak-public-reference",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Offline defensive CYBER HAK policy and artifact verification reference; non-production",
+  "scripts": {
+    "check": "node --check src/artifact-guard.mjs && node --check src/policy-gate.mjs && node --check src/registry-validation.mjs && node --check test/artifact-guard.test.mjs && node --check test/policy-gate.test.mjs && node --check test/registry-validation.test.mjs && node --check tools/verify-registries.mjs",
+    "test": "node --test test/*.test.mjs",
+    "verify": "npm run check && npm test && node tools/verify-registries.mjs"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "license": "UNLICENSED"
+}

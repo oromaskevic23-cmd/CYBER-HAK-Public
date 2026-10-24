@@ -1,0 +1,34 @@
+name: CYBER HAK Defensive Reference CI
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/**'
+      - 'test/**'
+      - 'tools/**'
+      - 'registry/**'
+      - 'PUBLIC-MANIFEST.json'
+      - 'package.json'
+      - '.github/workflows/cyber-hak-ci.yml'
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: cyber-hak-reference-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  offline-defensive-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Checkout without persisted credentials
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - name: Node.js 22
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '22'
+      - name: Verify syntax, negative tests and public registries
+        run: npm run verify
