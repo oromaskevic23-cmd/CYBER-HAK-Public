@@ -32,3 +32,10 @@ jobs:
         run: node tools/audit-github.mjs --targets config/audit-targets.json --out audit-output/ci
       - name: Show redacted reports in job summary
         run: cat audit-output/ci/*.md >> "$GITHUB_STEP_SUMMARY"
+      - name: Save redacted audit receipts
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # pinned v4
+        with:
+          name: auditshield-redacted-reports-${{ github.sha }}
+          path: audit-output/ci/
+          if-no-files-found: error
+          retention-days: 30
