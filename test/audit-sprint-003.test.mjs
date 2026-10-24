@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 const input=JSON.parse(readFileSync(new URL('../config/audit-targets.json',import.meta.url),'utf8'));
-const revised='2f46032fc7f0cb22032ce503109667f98c847f2f';
+const revised='23d25fa41287001c3529dad23571e67c04ddb74a';
 test('Sprint 003 audits original immutable controls alongside amended reference',()=>{
  assert.equal(input.targets.length,4);
  assert.deepEqual(new Set(input.targets.map(v=>v.repository)).size,3);
