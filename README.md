@@ -1,3 +1,5 @@
+> **Engineering update — AuditShield v0.2:** read-only GitHub auditing is implemented in a feature increment. See [implementation, reproduction and limits](docs/AUDITSHIELD_v0.2.md). Legacy architectural descriptions below are not proof of runtime deployment.
+
 # CYBER HAK Public
 
 CYBER HAK is the governed defensive-security architecture of IMPERIAL Core.
