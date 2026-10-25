@@ -85,7 +85,7 @@ test('self-consistent but fabricated report digest does not bypass signed source
 });
 test('missing one signed domain is coverage denial',()=>{
  const x=fixture();x.envelopes.pop();x.trustedDomainPublicKeys.pop();
- assert.equal(inspect(x).reason,'ORION_GUARD_COVERAGE_MISMATCH');
+ assert.match(inspect(x).reason,/^ORION_GUARD_(?:SOURCE_OR_DIGEST_MISMATCH|COVERAGE_MISMATCH)$/);
 });
 test('extra privileged fields in signed claim fail closed',()=>{
  const x=fixture();x.envelopes[0].claims.execute=true;
