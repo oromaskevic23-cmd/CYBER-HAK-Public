@@ -125,3 +125,11 @@ test('invalid or missing report input is always DENY',()=>{
  assert.equal(inspect({...x,report:null}).decision,'DENY');
  assert.equal(inspect({}).decision,'DENY');
 });
+
+
+test('missing owner halt state fails closed instead of implicitly assuming RUNNING',()=>{
+ const x=fixture();delete x.ownerHalted;
+ const result=inspect(x);
+ assert.equal(result.decision,'DENY');
+ assert.equal(result.reason,'ORION_GUARD_OWNER_HALTED');
+});
