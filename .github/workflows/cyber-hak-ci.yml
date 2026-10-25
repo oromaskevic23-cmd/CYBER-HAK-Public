@@ -39,3 +39,29 @@ jobs:
           path: audit-output/ci/
           if-no-files-found: error
           retention-days: 30
+
+  guardian-orion-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Checkout CYBER HAK exact revision without credentials
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - name: Node.js 22
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '22'
+      - name: Checkout pinned public ORION implementation
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          repository: oromaskevic23-cmd/ORION-Public
+          ref: f2dd1d0d6da4ae899c66c5078ce571d4385c0224
+          path: orion_public_reference
+          persist-credentials: false
+          sparse-checkout: |
+            src/orion-advisory.mjs
+            src/orion-evidence.mjs
+          sparse-checkout-cone-mode: false
+      - name: Run real pinned ORION signed-domain negative and positive checks
+        run: npm run orion:guardian
