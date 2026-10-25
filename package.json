@@ -8,7 +8,8 @@
     "check": "node tools/check-syntax.mjs",
     "test": "node --test test/*.test.mjs",
     "verify": "npm run check && npm test && node tools/verify-registries.mjs",
-    "audit:github": "node tools/audit-github.mjs"
+    "audit:github": "node tools/audit-github.mjs",
+    "orion:guardian": "node --test integration/orion-guardian-pinned.test.mjs"
   },
   "engines": {
     "node": ">=22"
