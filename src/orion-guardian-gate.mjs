@@ -70,7 +70,7 @@ function checkReport(r,missionId){
  * The caller must supply a pre-authorized trust registry; no key enrollment here.
  */
 export function inspectSignedOrionReport({report,envelopes,trustedDomainPublicKeys,
- expectedMissionId,now=Date.now(),ownerHalted=false}={}){
+ expectedMissionId,now=Date.now(),ownerHalted}={}){
  const reject=(reason)=>Object.freeze({
   schema:'cyber_hak_orion_guard_v1',decision:'DENY',reason,
   mission_id:MISSION.test(expectedMissionId??'')?expectedMissionId:null,
