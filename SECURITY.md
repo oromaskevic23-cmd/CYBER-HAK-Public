@@ -52,3 +52,7 @@ Explicitly deny:
 - private-key access
 
 Do not include offensive payloads, exploitation instructions or secrets.
+
+## Responsible disclosure
+
+Use GitHub Security → Report a vulnerability if offered. Otherwise open only a non-sensitive request for a private channel. Do not publish vulnerability details or secrets. Availability of private reporting and response times are not guaranteed by this document.
