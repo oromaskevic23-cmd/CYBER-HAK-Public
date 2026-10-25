@@ -42,3 +42,15 @@ Adversarial checks include tampered or wrong-key signatures, contradictory claim
 **Reproduction:** On the PR branch run `npm ci --ignore-scripts --no-audit --no-fund && npm run verify`. For the pinned integration command `npm run orion:guardian`, ORION source must already be present at `orion_public_reference/src/*.mjs` exactly as CI checks out; otherwise it fails closed.
 
 **Release decision:** BLOCKED WITH EVIDENCE until independent security QA, actual owner-authorized enrollment, durable audit/replay and run-time integration. Preserve Identity ≠ Authority, Capability ≠ Approval. Build software. Verify everything.
+
+## Verified CI checkpoint — 25 October 2026
+
+- Source tested: [`e6a9ee25`](https://github.com/oromaskevic23-cmd/CYBER-HAK-Public/commit/e6a9ee25a89b28a9fe14206b00bf1c87dc1c4d7b).
+- [GitHub Actions #40213964562](https://github.com/oromaskevic23-cmd/CYBER-HAK-Public/actions/runs/40213964562): both jobs SUCCESS.
+- Existing AuditShield + Artifact Guard + Policy Gate reference: **99/99 PASS**, zero failed tests.
+- Pinned real ORION contract integration: **17/17 PASS**, zero failed tests.
+- The original Guardian CI attempt caught an incorrect test expectation about the earliest denial stage when a domain is omitted. The implementation already denied that case. The test now accepts either source-correlation or coverage rejection; it does not permit approval.
+- In addition, owner halt status is no longer implicitly RUNNING: missing status denies inspection, tested independently. `ownerHalted` is still an **untrusted caller-supplied signal**, not a signed deployed owner-control integration.
+- Test runtime is GitHub-hosted CI and synthesized ephemeral signing keys, **not** an active deployed security gateway or proof of real owner authorization.
+
+**Decision:** VERIFIED COMPLETE at bounded reference/test scope; overall production Guardian Core integration remains BLOCKED WITH EVIDENCE.
