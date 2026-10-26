@@ -1,0 +1,36 @@
+name: CYBER HAK Sprint007 ApproveDesk Audit
+on:
+  pull_request:
+    paths:
+      - 'config/sprint007-approvedesk-target.json'
+      - '.github/workflows/sprint007-approvedesk-audit.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  static-security-review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout audited scanner
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - name: Node.js 22
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '22'
+      - name: Offline defensive unit suite
+        run: |
+          npm ci --ignore-scripts --no-audit --no-fund
+          npm run verify
+      - name: Scan pinned public ApproveDesk source
+        run: node tools/audit-github.mjs --targets config/sprint007-approvedesk-target.json --out audit-output/sprint007
+      - name: Upload independent technical scan evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cyber-hak-sprint007-approvedesk
+          path: audit-output/sprint007/
+          retention-days: 7
+          if-no-files-found: warn
