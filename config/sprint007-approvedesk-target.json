@@ -1,0 +1,10 @@
+{
+  "mission_id": "IC-ASTRA-CYBER-HAK-SPRINT007-APPROVEDESK-20261026",
+  "authority": "User-directed authorized read-only public repository assessment",
+  "targets": [
+    {
+      "repository": "oromaskevic23-cmd/IMPERIAL-Venture-Factory",
+      "commit": "4076522e37084a3f19ff262e87ce77442e19eae9"
+    }
+  ]
+}
