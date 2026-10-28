@@ -1,5 +1,9 @@
 # CYBER HAK
 
+<p align="center">
+  <img src="assets/branding/cyber-hak-command-center.webp" alt="CYBER HAK — Digital Immune System, IMPERIAL Core cybersecurity command center" width="100%" />
+</p>
+
 Defensive security and digital immune-system architecture for IMPERIAL Core.
 
 **Status: TESTED — bounded defensive references; AuditShield v0.2 evidence is open PR #1.**  
