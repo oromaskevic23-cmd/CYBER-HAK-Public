@@ -5,7 +5,7 @@
   "type": "module",
   "description": "Offline defensive CYBER HAK policy and artifact verification reference; non-production",
   "scripts": {
-    "check": "node --check src/artifact-guard.mjs && node --check src/policy-gate.mjs && node --check src/registry-validation.mjs && node --check test/artifact-guard.test.mjs && node --check test/policy-gate.test.mjs && node --check test/registry-validation.test.mjs && node --check tools/verify-registries.mjs",
+    "check": "node --check src/artifact-guard.mjs && node --check src/policy-gate.mjs && node --check src/registry-validation.mjs && node --check test/artifact-guard.test.mjs && node --check test/policy-gate.test.mjs && node --check test/registry-validation.test.mjs && node --check tools/verify-registries.mjs && node --check src/fleet-security-audit.mjs && node --check test/fleet-security-audit.test.mjs",
     "test": "node --test test/*.test.mjs",
     "verify": "npm run check && npm test && node tools/verify-registries.mjs"
   },
