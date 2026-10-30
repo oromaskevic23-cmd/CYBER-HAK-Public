@@ -1,6 +1,6 @@
 # CYBER HAK
 
-**Project creator & founding architect:** **Ромаскевич Александр Николаевич** (Alexander Nikolaevich Romaskevich · RomaskevicH). [Authorship & contribution provenance](AUTHORS.md).
+**Project creator & founding architect:** **Alexander Nikolaevich Romaskevich** (Alexander Nikolaevich Romaskevich · RomaskevicH). [Authorship & contribution provenance](AUTHORS.md).
 
 <p align="center">
   <img src="assets/branding/cyber-hak-command-center.webp" alt="CYBER HAK — Digital Immune System, IMPERIAL Core cybersecurity command center" width="100%" />
