@@ -1,6 +1,7 @@
 {
   "name": "cyber-hak-public-reference",
   "version": "0.1.0",
+  "author": "Ромаскевич Александр Николаевич (Alexander Nikolaevich Romaskevich; RomaskevicH)",
   "private": true,
   "type": "module",
   "description": "Offline defensive CYBER HAK policy and artifact verification reference; non-production",
