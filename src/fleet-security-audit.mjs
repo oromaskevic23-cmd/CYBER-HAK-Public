@@ -46,7 +46,7 @@ export function auditRepo({name,visibility,paths,workflows,alertCoverage='UNAVAI
     if(elevated&&triggers)add('ELEVATED_EVENT_TOKEN','HIGH',p,'Write token on externally influenced event; review trust boundaries');
     if(/(?:curl|wget)[^\n]{0,200}\|\s*(?:bash|sh)\b/m.test(text))
       add('PIPE_TO_SHELL','HIGH',p,'Remote script piped directly into shell');
-    if(/^\s*run:\s*[^\n]*\$\{\{\s*(?:github\.event|github\.head_ref|inputs\.)/m.test(text))
+    if(/^\s*(?:-\s*)?run:\s*[^\n]*\$\{\{\s*(?:github\.event|github\.head_ref|inputs\.)/m.test(text))
       add('DIRECT_UNTRUSTED_SHELL_INTERPOLATION','HIGH',p,'Untrusted context interpolated into run command');
     if(/^\s*uses:\s*['"]?actions\/checkout@/m.test(text)&&elevated&&triggers&&
        /persist-credentials:\s*true/.test(text))
