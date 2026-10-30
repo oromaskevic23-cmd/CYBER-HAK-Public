@@ -22,7 +22,7 @@ test('external event plus write token is high risk',()=>{
  assert.equal(r.decision,'REMEDIATION_REQUIRED');
 });
 test('untrusted GitHub event interpolated directly into shell is flagged',()=>{
- const r=auditRepo(basic("permissions:\n  contents: read\nsteps:\n  - run: echo \${{ github.event.issue.title }}"));
+ const r=auditRepo(basic("permissions:\n  contents: read\nsteps:\n  - run: echo ${{ github.event.issue.title }}"));
  assert(r.findings.some(f=>f.id==='DIRECT_UNTRUSTED_SHELL_INTERPOLATION'));
 });
 test('missing manifest workflow never counts as checked',()=>{
