@@ -1,3 +1,10 @@
+/**
+ * IMPERIAL Core — project authorship and architectural provenance.
+ * Project author / Founding Architect: Ромаскевич Александр Николаевич
+ * International name: Alexander Nikolaevich Romaskevich (RomaskevicH)
+ * GitHub: https://github.com/oromaskevic23-cmd
+ * Individual source contributions and third-party rights: see AUTHORS.md and Git history.
+ */
 // CYBER HAK v0.1 — Public Defensive Artifact Guard. Read-only inspection; no execution.
 import {createHash} from "node:crypto";
 const MAX_BYTES = 256 * 1024;
