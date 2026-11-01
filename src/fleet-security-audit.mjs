@@ -6,6 +6,7 @@ import {createHash} from 'node:crypto';
 const sha=s=>createHash('sha256').update(s).digest('hex');
 const object=x=>x!==null&&typeof x==='object'&&!Array.isArray(x);
 const fullSha=s=>/^[a-f0-9]{40}$/i.test(s);
+const immutableDockerImage=s=>/^docker:\/\/[a-zA-Z0-9._/-]+(?:\:[A-Za-z0-9._-]+)?@sha256:[a-f0-9]{64}$/i.test(s);
 const maxFindings=2000;
 
 export function auditRepo({name,visibility,paths,workflows,alertCoverage='UNAVAILABLE',inventoryComplete=true}={}) {
@@ -34,13 +35,27 @@ export function auditRepo({name,visibility,paths,workflows,alertCoverage='UNAVAI
     const usages=[...text.matchAll(/^\s*(?:-\s*)?uses:\s*['"]?([^\s#'"]+)/gm)].map(m=>m[1]);
     for(const action of usages){
       if(action.startsWith('./'))continue;
+      if(action.startsWith('docker://')){
+        if(!immutableDockerImage(action))
+          add('UNPINNED_DOCKER_IMAGE','MEDIUM',p,
+            'Docker action is not pinned to a full immutable sha256 digest');
+        continue;
+      }
       const at=action.lastIndexOf('@');
-      if(at<1||!fullSha(action.slice(at+1)))add('MUTABLE_ACTION_REF','MEDIUM',p,'Action is not pinned to a full commit SHA');
+      if(at<1||!fullSha(action.slice(at+1)))
+        add('MUTABLE_ACTION_REF','MEDIUM',p,'Action is not pinned to a full commit SHA');
     }
-    if(!/^\s*permissions:\s*(?:\{\s*\})?\s*$/m.test(text)&&
-       !/^\s*permissions:\s*\{[^}]+\}/m.test(text)){
-      add('MISSING_EXPLICIT_PERMISSIONS','MEDIUM',p,'Workflow has no explicit token permissions');
-    }
+    // Only a root-level declaration counts. A job-level or commented
+    // "permissions" entry must not hide unsafe workflow defaults.
+    const rootPermissions=/^permissions:[ \t]*(?:\{[^\r\n}]*\}[ \t]*|read-all[ \t]*|(?:#.*)?)(?:\r?\n|$)/m.test(text);
+    if(!rootPermissions)
+      add('MISSING_EXPLICIT_PERMISSIONS','MEDIUM',p,
+        'Workflow has no explicit root-level token permissions');
+    if(/^permissions:[ \t]*write-all(?:[ \t]*(?:#.*)?)?$/m.test(text))
+      add('WORKFLOW_WRITE_ALL','HIGH',p,'Workflow token grants unrestricted write permissions');
+    if(/^[ \t]+id-token:[ \t]*write(?:[ \t]*(?:#.*)?)?$/m.test(text))
+      add('OIDC_TOKEN_WRITE_REQUIRES_REVIEW','HIGH',p,
+        'OIDC token minting requires explicit trust-boundary review');
     const elevated=/^\s*(?:contents|issues|packages|pull-requests|actions|deployments|id-token):\s*write\s*(?:#.*)?$/m.test(text);
     const triggers=/^\s*(?:pull_request_target|issue_comment|issues|workflow_run|repository_dispatch):\s*/m.test(text);
     if(elevated&&triggers)add('ELEVATED_EVENT_TOKEN','HIGH',p,'Write token on externally influenced event; review trust boundaries');
