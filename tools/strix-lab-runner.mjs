@@ -45,12 +45,25 @@ export function sourceFingerprint(folder) {
   return Object.freeze({sha256:sha(JSON.stringify(manifest)),fileCount:manifest.length,bytes});
 }
 
-export function assessScanEvidence({exitCode,runStatus,findingsCount,evidencePresent}={}) {
+export function assessScanEvidence({exitCode,runStatus,findingsCount,evidencePresent,
+  endTime,reportedTarget,expectedTarget,spentUsd,limitUsd=Number(LAB_BUDGET_USD)}={}) {
   if(!Number.isInteger(exitCode)||![0,1,2].includes(exitCode))return 'STRIX_PROCESS_UNVERIFIED';
   if(exitCode===1)return 'STRIX_FATAL_ERROR';
   if(evidencePresent!==true||!Number.isSafeInteger(findingsCount)||findingsCount<0)
     return 'STRIX_EVIDENCE_INCOMPLETE';
   if(runStatus!=='completed')return 'STRIX_INCOMPLETE_OR_STOPPED';
+  // Upstream Strix run.json reports end_time and llm_usage.cost.
+  // A CLI exit code zero can reflect premature wrap-up near a budget cap.
+  if((typeof endTime!=='string'||!Number.isFinite(Date.parse(endTime))) &&
+     !(typeof endTime==='number'&&Number.isFinite(endTime)&&endTime>0))
+    return 'STRIX_COMPLETION_NOT_ATTESTED';
+  if(typeof reportedTarget!=='string'||typeof expectedTarget!=='string'||
+     !reportedTarget||reportedTarget!==expectedTarget)
+    return 'STRIX_SCOPE_NOT_ATTESTED';
+  if(typeof spentUsd!=='number'||!Number.isFinite(spentUsd)||spentUsd<0||
+     !Number.isFinite(limitUsd)||limitUsd<=0)
+    return 'STRIX_BUDGET_NOT_ATTESTED';
+  if(spentUsd>=limitUsd*0.90)return 'STRIX_BUDGET_COVERAGE_UNVERIFIED';
   if(exitCode===0&&findingsCount===0)return 'STRIX_REPORTED_NO_FINDINGS_QA_PENDING';
   if(exitCode===2&&findingsCount>0)return 'STRIX_REPORTED_FINDINGS_QA_PENDING';
   return 'STRIX_EXIT_AND_EVIDENCE_DISAGREE';
@@ -63,12 +76,16 @@ function parseEvidenceFile(p){
   return JSON.parse(readFileSync(p,'utf8'));
 }
 export function inspectStrixArtifacts(work,exitCode) {
-  const base=join(work,'strix_runs');
+  const base=join(work,'strix_runs'),expectedTarget=join(work,'public-source');
   if(!existsSync(base))return {status:'STRIX_EVIDENCE_INCOMPLETE',findingsCount:null};
+  if(lstatSync(base).isSymbolicLink()||!lstatSync(base).isDirectory())
+    throw Error('UNSAFE_STRIX_RUNS_DIRECTORY');
   const entries=readdirSync(base,{withFileTypes:true});
   if(entries.length!==1||!entries[0].isDirectory())
     return {status:'STRIX_EVIDENCE_INCOMPLETE',findingsCount:null};
   const run=join(base,entries[0].name);
+  if(lstatSync(run).isSymbolicLink()||!lstatSync(run).isDirectory())
+    throw Error('UNSAFE_STRIX_RUN_DIRECTORY');
   const runFile=join(run,'run.json'),vulns=join(run,'vulnerabilities.json');
   if(!existsSync(runFile)||!existsSync(vulns))
     return {status:'STRIX_EVIDENCE_INCOMPLETE',findingsCount:null};
@@ -77,9 +94,16 @@ export function inspectStrixArtifacts(work,exitCode) {
     Array.isArray(findingsData?.vulnerabilities)?findingsData.vulnerabilities:
     Array.isArray(findingsData?.findings)?findingsData.findings:null;
   const findingsCount=findings?.length??null;
+  const reportedTargets=Array.isArray(metadata?.targets_info)?metadata.targets_info
+    .map(t=>t?.original).filter(s=>typeof s==='string'):[];
+  const reportedTarget=reportedTargets.length===1?reportedTargets[0]:null;
+  const spentUsd=metadata?.llm_usage?.cost;
   return {status:assessScanEvidence({exitCode,runStatus:metadata?.status,
-      findingsCount,evidencePresent:findings!==null}),
+      findingsCount,evidencePresent:findings!==null,
+      endTime:metadata?.end_time,reportedTarget,expectedTarget,spentUsd}),
     findingsCount,runStatus:typeof metadata?.status==='string'?metadata.status:null,
+    costAttested:Number.isFinite(spentUsd)&&spentUsd>=0,
+    targetMatches:reportedTarget===expectedTarget,
     runJsonSha256:sha(readFileSync(runFile)),
     vulnerabilityIndexSha256:sha(readFileSync(vulns)),
     independentQA:false};
