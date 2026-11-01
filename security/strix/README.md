@@ -1,4 +1,4 @@
-# CYBER HAK × Strix — Enterprise Defensive Integration (v0.1)
+# CYBER HAK × Strix — Enterprise Defensive Integration (v0.2)
 
 **Status: LOCAL STRIX RUNNER PREPARED — NO STRIX PENTEST EXECUTED OR VERIFIED.**
 
@@ -52,6 +52,7 @@ and reviewed images already cached locally:
    ```sh
    export STRIX_LLM="ollama/qwen3-vl"
    export LLM_API_BASE="http://127.0.0.1:11434"
+   export CYBER_HAK_STRIX_EXPECTED_VERSION="REPLACE_WITH_VERIFIED_RELEASE_VERSION"
    ```
 
 5. After verifying the disposable VM is egress-filtered, explicitly authorize
@@ -66,10 +67,14 @@ and reviewed images already cached locally:
 The runner:
 - rejects cloud LLM model and remote LLM base configuration;
 - refuses known privileged API secrets passed as environment variables;
-- checks Strix and Docker availability;
+- checks Docker and Strix CLI availability and requires an independently confirmed exact Strix version;
+- records a deterministic SHA-256 fingerprint of the disposable source tree before and after the scan;
+- applies a local-defense budget of USD 0.01 (a secondary cap, **not** a paid-model authorization);
 - checks for symlinked source and scans a **temporary public-code copy**;
 - requests a quick scan with max 80 model turns and external-scope-denial instructions;
-- leaves generated Strix logs and proof materials under a local private temporary directory;
+- writes private `source-provenance.json`, `receipt.json` and raw Strix logs to the disposable host's protected temporary directory;
+- rejects a clean claim when Strix reports an incomplete/stopped scan, missing `run.json`, missing `vulnerabilities.json`, or inconsistent findings/exit status;
+- never streams raw security scanner output into public CI logs;
 - does not claim a success when Strix fails or finds vulnerabilities.
 
 **Caveats:** The two `CONFIRMED` variables are Owner/operator assertions, not proof
@@ -79,6 +84,37 @@ mount policy. Protect the host Docker daemon; Strix agents are not trusted
 workload identities. Local models below 70B may struggle with Strix agentic
 tool use, per upstream docs, so a successful *launch* is not evidence of a
 complete security assessment.
+
+
+## Version lock and validated evidence protocol (v0.2)
+
+The `CYBER_HAK_STRIX_EXPECTED_VERSION` value is not a placeholder you may use
+literally: replace it with the exact SEMVER obtained from a separately verified
+Strix upstream release, and confirm the installed CLI reports the same release.
+No particular Strix version is asserted as verified by this repository.
+
+The scanner is never automatically invoked by CI; only `--preflight` runs.
+A real scan requires the separately approved disposable offline/egress-filtered
+host, Docker, correct local model, and version lock.
+
+An actual run produces:
+- `source-provenance.json` — hashed files copied to the temporary target, scan
+  instruction hash, intended Strix version and local model;
+- `strix-private.log` — untrusted scanner output on the private lab host;
+- `strix_runs/<run-id>/run.json` and `vulnerabilities.json` — actual Strix
+  artifacts (schema varies across versions; unfamiliar formats fail closed);
+- `receipt.json` — scoped result and hashes, always
+  `independentQA:false` and `productionAuthorized:false`.
+
+The CLI exit code is NOT enough to claim a clean result. Run status
+`stopped` or missing artifacts is treated as incomplete, and exit 2
+means candidate vulnerabilities requiring independent QA, not automatic
+exploitation authority. Even the `STRIX_REPORTED_NO_FINDINGS_QA_PENDING`
+status does not prove the absence of vulnerabilities or comprehensive coverage.
+
+The source SHA-256 is a tamper indicator, not a trusted digital signature.
+Real evidence attestation requires an independently authorized signer,
+private Audit Ledger and separate source inventory verification.
 
 ## Mandatory vulnerability handling
 
