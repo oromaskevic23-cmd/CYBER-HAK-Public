@@ -34,3 +34,5 @@ jobs:
           node-version: '22'
       - name: Verify syntax, negative tests and public registries
         run: npm run verify
+      - name: Report actual Strix lab host prerequisites (no scan)
+        run: npm run strix:doctor

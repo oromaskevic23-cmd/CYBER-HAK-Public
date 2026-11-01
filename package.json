@@ -6,9 +6,10 @@
   "type": "module",
   "description": "Offline defensive CYBER HAK policy and artifact verification reference; non-production",
   "scripts": {
-    "check": "node --check src/artifact-guard.mjs && node --check src/policy-gate.mjs && node --check src/registry-validation.mjs && node --check test/artifact-guard.test.mjs && node --check test/policy-gate.test.mjs && node --check test/registry-validation.test.mjs && node --check tools/verify-registries.mjs && node --check src/fleet-security-audit.mjs && node --check test/fleet-security-audit.test.mjs && node --check tools/strix-lab-runner.mjs && node --check test/strix-lab-runner.test.mjs && node --check security/rulesets/main-ruleset.mjs && node --check tools/github-ruleset-controller.mjs && node --check test/github-ruleset-controller.test.mjs",
+    "check": "node --check src/artifact-guard.mjs && node --check src/policy-gate.mjs && node --check src/registry-validation.mjs && node --check test/artifact-guard.test.mjs && node --check test/policy-gate.test.mjs && node --check test/registry-validation.test.mjs && node --check tools/verify-registries.mjs && node --check src/fleet-security-audit.mjs && node --check test/fleet-security-audit.test.mjs && node --check tools/strix-lab-runner.mjs && node --check test/strix-lab-runner.test.mjs && node --check security/rulesets/main-ruleset.mjs && node --check tools/github-ruleset-controller.mjs && node --check test/github-ruleset-controller.test.mjs && node --check tools/strix-host-doctor.mjs && node --check test/strix-host-doctor.test.mjs",
     "test": "node --test test/*.test.mjs",
-    "verify": "npm run check && npm test && node tools/verify-registries.mjs && node tools/strix-lab-runner.mjs --preflight"
+    "verify": "npm run check && npm test && node tools/verify-registries.mjs && node tools/strix-lab-runner.mjs --preflight",
+    "strix:doctor": "node tools/strix-host-doctor.mjs --doctor"
   },
   "engines": {
     "node": ">=22"

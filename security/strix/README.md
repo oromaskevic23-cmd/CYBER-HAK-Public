@@ -46,6 +46,18 @@ and reviewed images already cached locally:
    node tools/strix-lab-runner.mjs --preflight
    ```
 
+   For actual read-only checks of Docker, the Strix executable, Ollama and the
+   preinstalled local model, use:
+
+   ```sh
+   npm run strix:doctor
+   ```
+
+   The doctor performs local binary and model checks only. It cannot prove
+   firewall isolation, AI Passport validity or successful pentesting, even when
+   every binary is found. It refuses known secret-bearing and remote Docker
+   environments and does not pull models, Docker images or dependencies.
+
 4. Configure a capable locally hosted **tool-calling** model, e.g. an Ollama
    model you have tested for structured `tool_calls`, and only the loopback base:
 
@@ -73,7 +85,7 @@ The runner:
 - checks for symlinked source and scans a **temporary public-code copy**;
 - requests a quick scan with max 80 model turns and external-scope-denial instructions;
 - writes private `source-provenance.json`, `receipt.json` and raw Strix logs to the disposable host's protected temporary directory;
-- rejects a clean claim when Strix reports an incomplete/stopped scan, missing `run.json`, missing `vulnerabilities.json`, or inconsistent findings/exit status;
+- rejects a clean claim when Strix reports an incomplete/stopped scan, missing `run.json`, missing `vulnerabilities.json`, missing completed timestamp, missing recorded model usage, a target different from the copied public source, a cost near the budget cap, or inconsistent findings/exit status;
 - never streams raw security scanner output into public CI logs;
 - does not claim a success when Strix fails or finds vulnerabilities.
 
@@ -106,7 +118,10 @@ An actual run produces:
 - `receipt.json` — scoped result and hashes, always
   `independentQA:false` and `productionAuthorized:false`.
 
-The CLI exit code is NOT enough to claim a clean result. Run status
+The CLI exit code is NOT enough to claim a clean result. Version v0.3 also
+requires the reported Strix target to match the disposable source directory,
+run.json end_time and llm_usage.cost; a scan close to its budget is marked
+coverage-unverified even when the CLI exits zero. Run status
 `stopped` or missing artifacts is treated as incomplete, and exit 2
 means candidate vulnerabilities requiring independent QA, not automatic
 exploitation authority. Even the `STRIX_REPORTED_NO_FINDINGS_QA_PENDING`

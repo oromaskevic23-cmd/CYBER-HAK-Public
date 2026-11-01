@@ -5,6 +5,14 @@ import {mkdtempSync,mkdirSync,writeFileSync,rmSync,symlinkSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 
+const goodReceipt=Object.freeze({
+  endTime:'2026-11-01T11:30:00Z',
+  reportedTarget:'/tmp/disposable-lab/public-source',
+  expectedTarget:'/tmp/disposable-lab/public-source',
+  spentUsd:0
+});
+const evaluated=options=>assessScanEvidence({...goodReceipt,...options});
+
 const safe=()=>({
   CYBER_HAK_STRIX_LOCAL_RUN:'EXPLICITLY_APPROVED',
   CYBER_HAK_STRIX_ISOLATED_HOST:'CONFIRMED',
@@ -78,24 +86,24 @@ test('additional privileged environment credentials are refused',()=>{
 });
 
 test('Strix exit zero alone is not an authenticated vulnerability-free result',()=>{
-  assert.equal(assessScanEvidence({exitCode:0,runStatus:'completed',
+  assert.equal(evaluated({exitCode:0,runStatus:'completed',
     findingsCount:0,evidencePresent:true}),'STRIX_REPORTED_NO_FINDINGS_QA_PENDING');
-  assert.equal(assessScanEvidence({exitCode:0,runStatus:'stopped',
+  assert.equal(evaluated({exitCode:0,runStatus:'stopped',
     findingsCount:0,evidencePresent:true}),'STRIX_INCOMPLETE_OR_STOPPED');
-  assert.equal(assessScanEvidence({exitCode:0,runStatus:'completed',
+  assert.equal(evaluated({exitCode:0,runStatus:'completed',
     findingsCount:0,evidencePresent:false}),'STRIX_EVIDENCE_INCOMPLETE');
-  assert.equal(assessScanEvidence({exitCode:0,runStatus:'completed',
+  assert.equal(evaluated({exitCode:0,runStatus:'completed',
     findingsCount:2,evidencePresent:true}),'STRIX_EXIT_AND_EVIDENCE_DISAGREE');
 });
 
 test('Strix findings remain blocked and require independent QA',()=>{
-  assert.equal(assessScanEvidence({exitCode:2,runStatus:'completed',
+  assert.equal(evaluated({exitCode:2,runStatus:'completed',
     findingsCount:2,evidencePresent:true}),'STRIX_REPORTED_FINDINGS_QA_PENDING');
-  assert.equal(assessScanEvidence({exitCode:1,runStatus:'completed',
+  assert.equal(evaluated({exitCode:1,runStatus:'completed',
     findingsCount:0,evidencePresent:true}),'STRIX_FATAL_ERROR');
-  assert.equal(assessScanEvidence({exitCode:2,runStatus:'completed',
+  assert.equal(evaluated({exitCode:2,runStatus:'completed',
     findingsCount:0,evidencePresent:true}),'STRIX_EXIT_AND_EVIDENCE_DISAGREE');
-  assert.equal(assessScanEvidence({exitCode:null,runStatus:'completed',
+  assert.equal(evaluated({exitCode:null,runStatus:'completed',
     findingsCount:0,evidencePresent:true}),'STRIX_PROCESS_UNVERIFIED');
 });
 
@@ -126,7 +134,10 @@ test('incomplete Strix artifact directory cannot count as completed assessment',
   assert.equal(inspectStrixArtifacts(root,0).status,'STRIX_EVIDENCE_INCOMPLETE');
   const dir=join(root,'strix_runs','run-A');
   mkdirSync(dir,{recursive:true});
-  writeFileSync(join(dir,'run.json'),JSON.stringify({status:'completed'}));
+  writeFileSync(join(dir,'run.json'),JSON.stringify({
+    status:'completed',end_time:'2026-11-01T11:30:00Z',llm_usage:{cost:0},
+    targets_info:[{original:join(root,'public-source')}]
+  }));
   assert.equal(inspectStrixArtifacts(root,0).status,'STRIX_EVIDENCE_INCOMPLETE');
   writeFileSync(join(dir,'vulnerabilities.json'),'[]');
   assert.equal(inspectStrixArtifacts(root,0).status,'STRIX_REPORTED_NO_FINDINGS_QA_PENDING');
@@ -140,4 +151,49 @@ test('Strix early budget stop is incomplete regardless of zero tool exit',t=>{
   writeFileSync(join(dir,'run.json'),JSON.stringify({status:'stopped'}));
   writeFileSync(join(dir,'vulnerabilities.json'),'[]');
   assert.equal(inspectStrixArtifacts(root,0).status,'STRIX_INCOMPLETE_OR_STOPPED');
+});
+
+
+test('Strix exit 0 with no recorded end time is NOT a clean finding',()=>{
+  assert.equal(evaluated({exitCode:0,runStatus:'completed',
+    findingsCount:0,evidencePresent:true,endTime:null}),
+    'STRIX_COMPLETION_NOT_ATTESTED');
+});
+
+test('Strix exit 0 against another target is not attributed to owned source',()=>{
+  assert.equal(evaluated({exitCode:0,runStatus:'completed',
+    findingsCount:0,evidencePresent:true,reportedTarget:'https://other.invalid'}),
+    'STRIX_SCOPE_NOT_ATTESTED');
+});
+
+test('Strix missing usage or near budget cap denies clean claim',()=>{
+  const record={exitCode:0,runStatus:'completed',
+    findingsCount:0,evidencePresent:true};
+  assert.equal(evaluated({...record,spentUsd:null}),'STRIX_BUDGET_NOT_ATTESTED');
+  assert.equal(evaluated({...record,spentUsd:0.0095}),
+    'STRIX_BUDGET_COVERAGE_UNVERIFIED');
+});
+
+test('Strix report JSON with missing target binding remains unverified',t=>{
+  const root=mkdtempSync(join(tmpdir(),'imperial-strix-binding-'));
+  t.after(()=>rmSync(root,{recursive:true,force:true}));
+  const dir=join(root,'strix_runs','run-C');mkdirSync(dir,{recursive:true});
+  writeFileSync(join(dir,'run.json'),JSON.stringify({
+    status:'completed',end_time:'2026-11-01T12:00:00Z',llm_usage:{cost:0},
+    targets_info:[{original:'/other/target'}]
+  }));
+  writeFileSync(join(dir,'vulnerabilities.json'),'[]');
+  const outcome=inspectStrixArtifacts(root,0);
+  assert.equal(outcome.status,'STRIX_SCOPE_NOT_ATTESTED');
+  assert.equal(outcome.targetMatches,false);
+});
+
+test('symlinked Strix result folder rejected before evidence parsing',t=>{
+  const root=mkdtempSync(join(tmpdir(),'imperial-strix-result-link-'));
+  t.after(()=>rmSync(root,{recursive:true,force:true}));
+  const external=mkdtempSync(join(tmpdir(),'imperial-strix-outside-'));
+  t.after(()=>rmSync(external,{recursive:true,force:true}));
+  symlinkSync(external,join(root,'strix_runs'),'dir');
+  assert.throws(()=>inspectStrixArtifacts(root,0),
+    /UNSAFE_STRIX_RUNS_DIRECTORY/);
 });
