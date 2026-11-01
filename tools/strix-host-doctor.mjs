@@ -24,13 +24,17 @@ export function doctor({env=process.env,run=spawnSync}={}){
     throw Error('SECRET_BEARING_HOST_ENV_DENIED');
   if(env.DOCKER_HOST)throw Error('REMOTE_DOCKER_HOST_DENIED');
   const sanitized={PATH:typeof env.PATH==='string'?env.PATH:''};
-  const diagnostics=[];
+  const diagnostics=[];let detectedStrixVersion=null;
   for(const [name,command,args] of CHECKS){
     let response;
     try{
       response=run(command,args,{env:sanitized,encoding:'utf8',
         timeout:10000,maxBuffer:128*1024});
     }catch{response=null;}
+    if(command==='strix'&&response?.status===0){
+      const text=String(response.stdout||'')+' '+String(response.stderr||'');
+      detectedStrixVersion=text.match(/\b[0-9]+\.[0-9]+\.[0-9]+(?:[-+][A-Za-z0-9.-]+)?\b/)?.[0]??null;
+    }
     diagnostics.push({name,
       state:response?.status===0&&!response?.error&&!response?.signal
         ?'LOCAL_TOOL_REACHABLE':'UNAVAILABLE'});
@@ -53,11 +57,14 @@ export function doctor({env=process.env,run=spawnSync}={}){
   const versionConfigured=typeof env.CYBER_HAK_STRIX_EXPECTED_VERSION==='string'&&
     /^[0-9]+\.[0-9]+\.[0-9]+(?:[A-Za-z0-9.+-]*)?$/.test(
       env.CYBER_HAK_STRIX_EXPECTED_VERSION);
+  const versionPinMatches=versionConfigured&&
+    detectedStrixVersion===env.CYBER_HAK_STRIX_EXPECTED_VERSION;
   return Object.freeze({
-    status:toolsReady&&modelReady&&versionConfigured?
+    status:toolsReady&&modelReady&&versionPinMatches?
       'LOCAL_COMPONENTS_REACHABLE_ISOLATION_UNVERIFIED':
       'STRIX_LAB_HOST_BLOCKED',
-    diagnostics,localModelPresent:modelReady,versionPinConfigured:versionConfigured,
+    diagnostics,localModelPresent:modelReady,
+    versionPinConfigured:versionConfigured,versionPinMatches,
     hostEgressIsolation:'UNVERIFIED',ownerApproval:'NOT_CHECKED',
     realStrixScanExecuted:false,productionAuthorized:false,
     externalNetworkCalls:0
