@@ -105,7 +105,7 @@ test('complete one-repo fleet only accepts verified clean evidence',()=>{
 
 test('specially crafted forged audit claim cannot bypass checks',()=>{
   const clean=auditRepo(basic());
-  const fake={...clean,alertCoverage:'VERIFIED',findings:[],summary:{high:0,medium:0,incomplete:0}};
+  const fake={...clean,alertCoverage:'ACCESS_DENIED',findings:[],summary:{high:0,medium:0,incomplete:0}};
   assert.throws(()=>auditFleet([fake],{expectedRepos:1}),/REPORT_SHA256_MISMATCH/);
   assert.throws(()=>auditFleet([{...clean,externalEffects:1}],{expectedRepos:1}),/REPORT_PROVENANCE_INVALID/);
 });
