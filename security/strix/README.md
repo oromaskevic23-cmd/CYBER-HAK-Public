@@ -172,3 +172,62 @@ independently observed traces. Never label the static-engine findings as
 **Current next blocker:** a dedicated egress-restricted host with working
 Strix, Docker and a sufficiently capable local LLM. Do not spend on cloud
 LLM/API calls until the Architect separately authorizes such expenditure.
+
+## Sprint 006 — Mandatory Owner-signed lab permit (Ed25519, zero network)
+
+**Unsigned environment-variable approval is no longer sufficient to start Strix.**
+The actual `--run` path now requires an independently trusted Owner Ed25519
+public-key fingerprint and a signed, time-limited, one-use permit. Nothing in
+this public repository provisions the Owner private key, signs a permit,
+confirms the signing authority, or performs a real Strix scan.
+
+1. Run `node tools/strix-lab-runner.mjs --preflight` on the approved source
+   checkout. This creates only an ephemeral local copy and reports
+   `sourceSha256` plus `scopeSha256` in its output. It does not run Docker,
+   Strix or Ollama. The digests become invalid if the source or policy changes.
+2. Using a **separate, trusted Owner-controlled signing workflow** (outside
+   the Strix sandbox and GitHub), construct the 12-field permit payload:
+   `schema=cyber-hak.strix.owner-lab-permit.v1`,
+   `missionId=IC-STRIX-...`, exact `targetSha256`, `scopeSha256`,
+   `model`, `strixVersion`, fresh one-use `nonce`,
+   `issuedAt`, `expiresAt` in Unix epoch milliseconds, both
+   `productionAuthorized=false` and `externalTargetsAuthorized=false`,
+   and `maxBudgetUsd="0.01"`. Maximum signed TTL is five minutes.
+3. Canonical signing material is
+   `CYBER_HAK_STRIX_LAB_AUTH_V1\n` followed by compact JSON of those fields
+   in the order defined in `security/strix/signed-permit.mjs`.
+   Sign that byte sequence using Owner Ed25519. Set permit JSON object
+   `{ "payload": ..., "signature": "<canonical-base64url-ed25519-signature>" }`.
+   A real enrollment service must establish and hold the Owner public-key
+   fingerprint independently, never from the untrusted permit itself.
+4. On an **egress-filtered disposable, Owner-controlled VM only**, configure
+   the following *local environment paths*. Paths refer to secure files
+   outside the Strix target and outside GitHub:
+
+   ```sh
+   export CYBER_HAK_STRIX_SIGNED_PERMIT_PATH="/secure/owner-lab-permit.json"
+   export CYBER_HAK_STRIX_OWNER_PUBLIC_KEY_PATH="/secure/owner-public-spki.pem"
+   export CYBER_HAK_STRIX_OWNER_SPKI_SHA256="REPLACE_WITH_PINNED_64_HEX_SHA256"
+   export CYBER_HAK_STRIX_NONCE_STORE="/secure/durable-nonces"
+   ```
+
+   These placeholders are not real credentials or current IMPERIAL Core
+   Owner enrollment. Never copy a private signing key, recovery phrase or
+   production API token into the test environment.
+5. The scanner verifies the Ed25519 signature, pinned Owner SPKI hash, exact
+   code and scope SHA-256, model, installed Strix version and max budget.
+   It atomically consumes the nonce in a `0700` local directory before the
+   scanner runs. A replay or scope mismatch is blocked. Scanning is capped
+   by remaining permit lifetime and results produced after expiry are denied.
+
+**Trust limitation:** Local files and environment strings are not a
+hardware-backed or server-validated enrollment mechanism. A privileged
+administrator of the test VM can alter that VM. The durable nonce store
+blocks replay on one host, not across independently cloned VMs. Before
+production or repeatable distributed use, bind the trusted Owner public
+key and nonce consumption to the protected HANTER Approval Gateway and
+Audit Ledger. No real Owner grants have been minted by this implementation.
+
+**Status:** the published tests use ephemeral, synthetic Ed25519 keys.
+The actual Strix runtime remains unexecuted until the Owner trust root,
+isolated host and local tool-calling LLM are available.
