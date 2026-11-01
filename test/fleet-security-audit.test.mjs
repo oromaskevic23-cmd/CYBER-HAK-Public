@@ -118,3 +118,14 @@ test('overcounted and incomplete fleet cannot be certified',()=>{
   assert.equal(result.complete,false);
   assert.equal(result.observedRepos,1);
 });
+
+
+test('fabricated one-repo PASS without any real scanner evidence is denied',()=>{
+  const forged={
+    repo:'org/invented-pass',
+    inventoryComplete:true,
+    alertCoverage:'VERIFIED',
+    summary:{high:0,medium:0,incomplete:0}
+  };
+  assert.throws(()=>auditFleet([forged],{expectedRepos:1}),/REPORT_SCHEMA_DENIED/);
+});
