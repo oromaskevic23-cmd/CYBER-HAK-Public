@@ -4,18 +4,22 @@ import {spawnSync} from 'node:child_process';
 import {resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {buildMainRuleset,assertRulesetEnforced,REQUIRED_GATE,
- validateTarget} from '../security/rulesets/main-ruleset.mjs';
+ validateTarget,GITHUB_ACTIONS_APP_ID} from '../security/rulesets/main-ruleset.mjs';
 import {parseOptions,assertGateReady,assertOwnerExecution,applyOneRuleset}
  from '../tools/github-ruleset-controller.mjs';
 
 const repo='oromaskevic23-cmd/CYBER-HAK-Public';
 const sha='a'.repeat(40);
-const green={name:REQUIRED_GATE,head_sha:sha,status:'completed',conclusion:'success'};
+const green={name:REQUIRED_GATE,head_sha:sha,status:'completed',conclusion:'success',
+ app:{id:GITHUB_ACTIONS_APP_ID,slug:'github-actions'},
+ details_url:'https://github.com/'+repo+'/actions/runs/123456/job/789012'};
 const res=(data,status=200)=>({status,text:async()=>JSON.stringify(data)});
 
 function fakeApi({missingGate=false,existing=[],createStatus=201,
- defaultBranch='main',wrongResult=false}={}){
+ defaultBranch='main',wrongResult=false,spoofedGate=null,
+ advanceMainOnRead=0}={}){
  const calls=[],base='/repos/'+repo;
+ let branchReadCount=0;
  const fetchImpl=async(url,opt)=>{
   const path=new URL(url).pathname;
   calls.push({path,method:opt.method,headers:opt.headers,body:opt.body});
@@ -25,9 +29,13 @@ function fakeApi({missingGate=false,existing=[],createStatus=201,
     if(opt.method==='POST')return res({...buildMainRuleset(repo),id:71},createStatus);
     return res(existing);
   }
-  if(path===base+'/branches/main')return res({commit:{sha}});
+  if(path===base+'/branches/main'){
+    branchReadCount++;
+    return res({commit:{sha:advanceMainOnRead===branchReadCount?'b'.repeat(40):sha}});
+  }
   if(path===base+'/commits/'+sha+'/check-runs')
-    return res({total_count:missingGate?0:1,check_runs:missingGate?[]:[green]});
+    return res({total_count:missingGate?0:1,
+      check_runs:missingGate?[]:[spoofedGate??green]});
   if(path===base+'/rulesets/71')
     return res(wrongResult?{id:71,enforcement:'disabled'}:
       {...buildMainRuleset(repo),id:71});
@@ -52,7 +60,7 @@ test('strict main ruleset requires verified check and no bypass',()=>{
  assert.deepEqual(p.rules.map(x=>x.type),[
   'deletion','non_fast_forward','pull_request','required_status_checks']);
  assert.deepEqual(p.rules.at(-1).parameters.required_status_checks,
-  [{context:REQUIRED_GATE}]);
+  [{context:REQUIRED_GATE,integration_id:GITHUB_ACTIONS_APP_ID}]);
  assert.equal(p.rules.at(-1).parameters.strict_required_status_checks_policy,true);
  assert.equal(p.rules[2].parameters.required_approving_review_count,0);
  assert.deepEqual(p.rules[2].parameters.allowed_merge_methods,['squash']);
@@ -99,17 +107,17 @@ test('apply requires real interactive confirmation and no CI environment',()=>{
 });
 
 test('a failing, stale or foreign check blocks enrollment',()=>{
- assert.equal(assertGateReady([green],sha),true);
+ assert.equal(assertGateReady([green],sha,repo),true);
  for(const f of [{...green,conclusion:'failure'},
    {...green,head_sha:'b'.repeat(40)},
    {...green,status:'in_progress'},{...green,name:'evil'}])
-  assert.throws(()=>assertGateReady([f],sha),/REQUIRED_GATE_NOT_GREEN_ON_MAIN/);
+  assert.throws(()=>assertGateReady([f],sha,repo),/REQUIRED_GATE_NOT_GREEN_ON_MAIN/);
 });
 
 test('mocked good API enrolls one ruleset, then independently verifies it',async()=>{
  const mock=fakeApi();
  const r=await applyOneRuleset({repo,token:'mock',fetchImpl:mock.fetchImpl});
- assert.equal(r.status,'ACTIVE_VERIFIED');
+ assert.equal(r.status,'ACTIVE_CONFIGURATION_VERIFIED_NEGATIVE_PR_PENDING');
  assert.equal(r.rulesetId,71);
  assert.equal(mock.calls.filter(x=>x.method==='POST').length,1);
  const post=mock.calls.find(x=>x.method==='POST');
@@ -170,5 +178,48 @@ test('readback validation denies bypass, wrong check and wrong branch',()=>{
   include:['refs/heads/dev'],exclude:[]}}},p),/RULESET_TARGET_MISMATCH/);
  const c=structuredClone(p);
  c.rules.at(-1).parameters.required_status_checks=[{context:'wrong'}];
- assert.throws(()=>assertRulesetEnforced(c,p),/RULESET_CHECKS_MISMATCH/);
+ assert.throws(()=>assertRulesetEnforced(c,p),/RULESET_CHECKS_OR_SOURCE_MISMATCH/);
+});
+
+
+test('a forged same-name status from other GitHub App cannot enroll a ruleset',async()=>{
+ for(const fake of [
+  {...green,app:{id:444444,slug:'other-app'}},
+  {...green,app:{id:GITHUB_ACTIONS_APP_ID,slug:'foreign'}},
+  {...green,details_url:'https://github.com/foreign/repo/actions/runs/1/job/2'},
+  {...green,details_url:'https://example.invalid/pretend-github'}
+ ]){
+  assert.throws(()=>assertGateReady([fake],sha,repo),/REQUIRED_GATE_NOT_GREEN_ON_MAIN/);
+  const net=fakeApi({spoofedGate:fake});
+  await assert.rejects(applyOneRuleset({repo,token:'mock',fetchImpl:net.fetchImpl}),
+    /REQUIRED_GATE_NOT_GREEN_ON_MAIN/);
+  assert.equal(net.calls.filter(x=>x.method==='POST').length,0);
+ }
+});
+
+test('owner check source is cryptographically constrained by GitHub-app integration ID',()=>{
+ const p=buildMainRuleset(repo);
+ assert.equal(p.rules.at(-1).parameters.required_status_checks[0].integration_id,
+   GITHUB_ACTIONS_APP_ID);
+ for(const altered of [null,1,444]){
+  const x=structuredClone(p);
+  if(altered===null)
+    delete x.rules.at(-1).parameters.required_status_checks[0].integration_id;
+  else x.rules.at(-1).parameters.required_status_checks[0].integration_id=altered;
+  assert.throws(()=>assertRulesetEnforced(x,p),/RULESET_CHECKS_OR_SOURCE_MISMATCH/);
+ }
+});
+
+test('branch advanced between gate check and ruleset creation is denied before POST',async()=>{
+ const net=fakeApi({advanceMainOnRead:2});
+ await assert.rejects(applyOneRuleset({repo,token:'mock',fetchImpl:net.fetchImpl}),
+   /MAIN_ADVANCED_DURING_ENROLLMENT/);
+ assert.equal(net.calls.filter(x=>x.method==='POST').length,0);
+});
+
+test('branch moving after creation never results in claim of verified installation',async()=>{
+ const net=fakeApi({advanceMainOnRead:3});
+ await assert.rejects(applyOneRuleset({repo,token:'mock',fetchImpl:net.fetchImpl}),
+   /RULESET_CREATED_MAIN_MOVED_NEEDS_REVIEW/);
+ assert.equal(net.calls.filter(x=>x.method==='POST').length,1);
 });
