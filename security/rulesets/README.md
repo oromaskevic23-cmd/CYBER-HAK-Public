@@ -104,3 +104,11 @@ It calls GitHub `GET /repos/{owner}/{repo}/rulesets` and the individual ruleset 
 The only positive receipt is `ACTIVE_RULESET_CONFIGURATION_VERIFIED` after the complete GitHub ruleset object matches the expected `main` branch, required check, no configured bypass actors and PR policy. The receipt explicitly states `actualMergeDenialTested:false`: API configuration is **not** a substitute for the separate negative PR test demonstrating that GitHub rejects a failing check.
 
 A returned 403/404/500, absent or mismatched ruleset, incomplete pagination or malformed API result is `ACCESS_DENIED`, `NOT_FOUND_OR_INACCESSIBLE`, `UNAVAILABLE` or another blocked/unverified status — **never** evidence that branch protection is active. The command returns exit code 2 when protections are not confirmed, without changing the repository. Existing administrative enrollment still requires the Owner-controlled interactive session and plan permissions described above.
+
+## SPRINT 006 — GitHub Actions app provenance and race resistance
+
+The mandatory Enterprise Error Gate is pinned to **GitHub Actions integration ID `15368`**, verified from the real successful check-run API record on the [owned CYBER HAK commit](https://github.com/oromaskevic23-cmd/CYBER-HAK-Public/actions/runs/41315712042/job/124875177241). GitHub's documented required-status-check rule supports an `integration_id`; the policy requires this exact source rather than trusting any status with the same human-readable context.
+
+The Owner-only ruleset installer now verifies that the latest successful main-branch check run comes from the matching `github-actions` app ID and the exact repository's Actions job URL. It rereads `main` immediately before writing the ruleset and after readback; a branch race is reported as unverified rather than a false success. A successful ruleset API readback is now explicitly `ACTIVE_CONFIGURATION_VERIFIED_NEGATIVE_PR_PENDING` — GitHub blocking an intentionally failing PR still requires a separate independent negative acceptance test.
+
+No administrative settings were changed by this sprint. The connected GitHub App still lacks Administration:write, and the Owner-only installer must run interactively under authorized GitHub plan capabilities. Never paste a GitHub token into chat.
