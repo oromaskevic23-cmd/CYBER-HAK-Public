@@ -33,7 +33,7 @@ export function doctor({env=process.env,run=spawnSync}={}){
     }catch{response=null;}
     if(command==='strix'&&response?.status===0){
       const text=String(response.stdout||'')+' '+String(response.stderr||'');
-      detectedStrixVersion=text.match(/\b[0-9]+\.[0-9]+\.[0-9]+(?:[-+][A-Za-z0-9.-]+)?\b/)?.[0]??null;
+      detectedStrixVersion=text.match(/(?:^|[^A-Za-z0-9])v?([0-9]+\.[0-9]+\.[0-9]+(?:[-+][A-Za-z0-9.-]+)?)(?![A-Za-z0-9])/)?.[1]??null;
     }
     diagnostics.push({name,
       state:response?.status===0&&!response?.error&&!response?.signal
