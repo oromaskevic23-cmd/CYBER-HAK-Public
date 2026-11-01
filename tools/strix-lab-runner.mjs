@@ -62,7 +62,7 @@ function parseEvidenceFile(p){
     throw Error('UNSAFE_STRIX_REPORT_FILE');
   return JSON.parse(readFileSync(p,'utf8'));
 }
-export function inspectStrixArtifacts(work,exitCode) {
+export function inspectStrixArtifacts(work,exitCode,{expectedTarget=null,budgetUsd=LAB_BUDGET_USD}={}) {
   const base=join(work,'strix_runs');
   if(!existsSync(base))return {status:'STRIX_EVIDENCE_INCOMPLETE',findingsCount:null};
   const entries=readdirSync(base,{withFileTypes:true});
@@ -73,13 +73,31 @@ export function inspectStrixArtifacts(work,exitCode) {
   if(!existsSync(runFile)||!existsSync(vulns))
     return {status:'STRIX_EVIDENCE_INCOMPLETE',findingsCount:null};
   const metadata=parseEvidenceFile(runFile), findingsData=parseEvidenceFile(vulns);
+  // A local path is Strix's real target, not just an instruction-file hint.
+  // Evidence must bind to this exact disposable copy before any result claim.
+  if(typeof expectedTarget!=='string'||!expectedTarget.startsWith('/')||
+    !Array.isArray(metadata?.targets_info)||metadata.targets_info.length!==1||
+    metadata.targets_info[0]?.original!==expectedTarget)
+    return {status:'STRIX_TARGET_BINDING_UNVERIFIED',findingsCount:null};
+  const usage=metadata.llm_usage;
+  const cost=usage?.cost;
+  if(typeof cost!=='number'||!Number.isFinite(cost)||cost<0||
+     Number(budgetUsd)<=0||!Number.isFinite(Number(budgetUsd)))
+    return {status:'STRIX_USAGE_EVIDENCE_INCOMPLETE',findingsCount:null};
+  const budgetFraction=cost/Number(budgetUsd);
+  // Strix may wrap up early *with status completed* near its budget cap.
+  // Refuse to classify such a run as "no findings" without QA review.
+  const budgetNearLimit=budgetFraction>=0.9;
   const findings=Array.isArray(findingsData)?findingsData:
     Array.isArray(findingsData?.vulnerabilities)?findingsData.vulnerabilities:
     Array.isArray(findingsData?.findings)?findingsData.findings:null;
   const findingsCount=findings?.length??null;
-  return {status:assessScanEvidence({exitCode,runStatus:metadata?.status,
-      findingsCount,evidencePresent:findings!==null}),
-    findingsCount,runStatus:typeof metadata?.status==='string'?metadata.status:null,
+  const rawStatus=assessScanEvidence({exitCode,runStatus:metadata?.status,
+      findingsCount,evidencePresent:findings!==null});
+  return {status:budgetNearLimit&&rawStatus==='STRIX_REPORTED_NO_FINDINGS_QA_PENDING'?
+      'STRIX_BUDGET_LIMIT_COVERAGE_UNVERIFIED':rawStatus,
+    findingsCount,reportedCostUsd:cost,budgetFraction,
+    runStatus:typeof metadata?.status==='string'?metadata.status:null,
     runJsonSha256:sha(readFileSync(runFile)),
     vulnerabilityIndexSha256:sha(readFileSync(vulns)),
     independentQA:false};
@@ -192,7 +210,7 @@ async function main(){
   const sourceAfter=sourceFingerprint(staged);
   const evidence=proc.error||proc.signal?
     {status:'STRIX_PROCESS_ERROR',findingsCount:null}:
-    inspectStrixArtifacts(work,proc.status);
+    inspectStrixArtifacts(work,proc.status,{expectedTarget:staged});
   const receipt={
     schema:'cyber-hak.strix.execution-receipt.v2',
     ...evidence,exitCode:proc.status??null,
