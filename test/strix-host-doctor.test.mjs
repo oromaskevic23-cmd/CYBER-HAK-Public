@@ -75,3 +75,13 @@ test('doctor never attempts network or Docker pull regardless of runner result',
   assert.equal(r.externalNetworkCalls,0);
   assert(!calls.some(x=>x.args.includes('pull')||x.command==='curl'));
 });
+
+
+test('version claim is rejected when installed Strix reports a different version',()=>{
+  const e=env();
+  e.CYBER_HAK_STRIX_EXPECTED_VERSION='9.9.9';
+  const report=doctor({env:e,run:healthy()});
+  assert.equal(report.versionPinConfigured,true);
+  assert.equal(report.versionPinMatches,false);
+  assert.equal(report.status,'STRIX_LAB_HOST_BLOCKED');
+});
