@@ -6,6 +6,9 @@
 export const OWNER='oromaskevic23-cmd';
 export const RULESET_NAME='IMPERIAL Enterprise Main Branch Protection v1';
 export const REQUIRED_GATE='enterprise-quality / enterprise-error-gate';
+// Verified GitHub Actions GitHub App identity on the owned CYBER HAK check run.
+// Used to reject same-name statuses submitted by another app or actor.
+export const GITHUB_ACTIONS_APP_ID=15368;
 
 export function validateTarget(repo){
   if(typeof repo!=='string' ||
@@ -41,7 +44,8 @@ export function buildMainRuleset(repo,{extraChecks=[]}={}){
       }},
       {type:'required_status_checks',parameters:{
         do_not_enforce_on_create:false,
-        required_status_checks:checks.map(context=>({context})),
+        required_status_checks:checks.map((context,i)=>i===0?
+          ({context,integration_id:GITHUB_ACTIONS_APP_ID}):({context})),
         strict_required_status_checks_policy:true
       }}
     ]
@@ -72,10 +76,15 @@ export function assertRulesetEnforced(actual,expected){
       if(observed.parameters?.strict_required_status_checks_policy!==true ||
          observed.parameters?.do_not_enforce_on_create!==false)
         throw Error('RULESET_CHECK_POLICY_MISMATCH');
-      const got=observed.parameters?.required_status_checks?.map(x=>x.context);
-      const want=rule.parameters.required_status_checks.map(x=>x.context);
+      const got=observed.parameters?.required_status_checks;
+      const want=rule.parameters.required_status_checks;
       if(!Array.isArray(got)||got.length!==want.length||
-         want.some(x=>!got.includes(x)))throw Error('RULESET_CHECKS_MISMATCH');
+         want.some(x=>{
+           const found=got.filter(y=>y.context===x.context);
+           return found.length!==1 ||
+             (x.integration_id!==undefined &&
+              found[0].integration_id!==x.integration_id);
+         }))throw Error('RULESET_CHECKS_OR_SOURCE_MISMATCH');
     }else if(rule.type==='pull_request'){
       const p=observed.parameters;
       if(!p||p.required_review_thread_resolution!==true ||
