@@ -1,12 +1,16 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {assessRuntime} from '../tools/strix-lab-runner.mjs';
+import {assessRuntime,assessScanEvidence,inspectStrixArtifacts,sourceFingerprint} from '../tools/strix-lab-runner.mjs';
+import {mkdtempSync,mkdirSync,writeFileSync,rmSync,symlinkSync} from 'node:fs';
+import {tmpdir} from 'node:os';
+import {join} from 'node:path';
 
 const safe=()=>({
   CYBER_HAK_STRIX_LOCAL_RUN:'EXPLICITLY_APPROVED',
   CYBER_HAK_STRIX_ISOLATED_HOST:'CONFIRMED',
   STRIX_LLM:'ollama/qwen3-vl',
-  LLM_API_BASE:'http://127.0.0.1:11434'
+  LLM_API_BASE:'http://127.0.0.1:11434',
+  CYBER_HAK_STRIX_EXPECTED_VERSION:'1.2.3'
 });
 
 test('preflight never claims an exploit scan ran',()=>{
@@ -53,4 +57,87 @@ test('approved local plan still declares it has NOT run Strix',()=>{
 test('unknown mode is denied',()=>{
   assert.throws(()=>assessRuntime(safe(),'--target=https://server.example.com'),
     /UNSUPPORTED_STRIX_MODE/);
+});
+
+
+test('version must be explicitly pinned before any lab scan',()=>{
+  const e=safe();delete e.CYBER_HAK_STRIX_EXPECTED_VERSION;
+  assert.throws(()=>assessRuntime(e,'--run'),/PINNED_STRIX_VERSION_REQUIRED/);
+  e.CYBER_HAK_STRIX_EXPECTED_VERSION='latest';
+  assert.throws(()=>assessRuntime(e,'--run'),/PINNED_STRIX_VERSION_REQUIRED/);
+});
+
+test('additional privileged environment credentials are refused',()=>{
+  for(const name of ['GITHUB_ADMIN_TOKEN','SUPABASE_ACCESS_TOKEN',
+    'AWS_ACCESS_KEY_ID','AWS_SECRET_ACCESS_KEY','GOOGLE_APPLICATION_CREDENTIALS',
+    'STRIPE_SECRET_KEY']){
+    const e=safe();e[name]='synthetic-test-secret-not-real';
+    assert.throws(()=>assessRuntime(e,'--run'),
+      /PRIVILEGED_OR_EXTERNAL_SECRET_ENV_DENIED/,name);
+  }
+});
+
+test('Strix exit zero alone is not an authenticated vulnerability-free result',()=>{
+  assert.equal(assessScanEvidence({exitCode:0,runStatus:'completed',
+    findingsCount:0,evidencePresent:true}),'STRIX_REPORTED_NO_FINDINGS_QA_PENDING');
+  assert.equal(assessScanEvidence({exitCode:0,runStatus:'stopped',
+    findingsCount:0,evidencePresent:true}),'STRIX_INCOMPLETE_OR_STOPPED');
+  assert.equal(assessScanEvidence({exitCode:0,runStatus:'completed',
+    findingsCount:0,evidencePresent:false}),'STRIX_EVIDENCE_INCOMPLETE');
+  assert.equal(assessScanEvidence({exitCode:0,runStatus:'completed',
+    findingsCount:2,evidencePresent:true}),'STRIX_EXIT_AND_EVIDENCE_DISAGREE');
+});
+
+test('Strix findings remain blocked and require independent QA',()=>{
+  assert.equal(assessScanEvidence({exitCode:2,runStatus:'completed',
+    findingsCount:2,evidencePresent:true}),'STRIX_REPORTED_FINDINGS_QA_PENDING');
+  assert.equal(assessScanEvidence({exitCode:1,runStatus:'completed',
+    findingsCount:0,evidencePresent:true}),'STRIX_FATAL_ERROR');
+  assert.equal(assessScanEvidence({exitCode:2,runStatus:'completed',
+    findingsCount:0,evidencePresent:true}),'STRIX_EXIT_AND_EVIDENCE_DISAGREE');
+  assert.equal(assessScanEvidence({exitCode:null,runStatus:'completed',
+    findingsCount:0,evidencePresent:true}),'STRIX_PROCESS_UNVERIFIED');
+});
+
+test('staged source hash changes on artifact mutation',t=>{
+  const root=mkdtempSync(join(tmpdir(),'imperial-strix-fingerprint-'));
+  t.after(()=>rmSync(root,{force:true,recursive:true}));
+  const file=join(root,'readme.txt');
+  writeFileSync(file,'safe synthetic fixture');
+  const first=sourceFingerprint(root);
+  assert.equal(first.fileCount,1);
+  assert.match(first.sha256,/^[0-9a-f]{64}$/);
+  writeFileSync(file,'safe synthetic fixture changed');
+  const second=sourceFingerprint(root);
+  assert.notEqual(first.sha256,second.sha256);
+});
+
+test('source tree symlinks are denied before copying into Strix target',t=>{
+  const root=mkdtempSync(join(tmpdir(),'imperial-strix-link-'));
+  t.after(()=>rmSync(root,{force:true,recursive:true}));
+  writeFileSync(join(root,'safe.txt'),'safe');
+  symlinkSync(join(root,'safe.txt'),join(root,'unsafe.txt'));
+  assert.throws(()=>sourceFingerprint(root),/SYMLINK_SOURCE_DENIED/);
+});
+
+test('incomplete Strix artifact directory cannot count as completed assessment',t=>{
+  const root=mkdtempSync(join(tmpdir(),'imperial-strix-artifact-'));
+  t.after(()=>rmSync(root,{force:true,recursive:true}));
+  assert.equal(inspectStrixArtifacts(root,0).status,'STRIX_EVIDENCE_INCOMPLETE');
+  const dir=join(root,'strix_runs','run-A');
+  mkdirSync(dir,{recursive:true});
+  writeFileSync(join(dir,'run.json'),JSON.stringify({status:'completed'}));
+  assert.equal(inspectStrixArtifacts(root,0).status,'STRIX_EVIDENCE_INCOMPLETE');
+  writeFileSync(join(dir,'vulnerabilities.json'),'[]');
+  assert.equal(inspectStrixArtifacts(root,0).status,'STRIX_REPORTED_NO_FINDINGS_QA_PENDING');
+  assert.equal(inspectStrixArtifacts(root,0).independentQA,false);
+});
+
+test('Strix early budget stop is incomplete regardless of zero tool exit',t=>{
+  const root=mkdtempSync(join(tmpdir(),'imperial-strix-stopped-'));
+  t.after(()=>rmSync(root,{force:true,recursive:true}));
+  const dir=join(root,'strix_runs','run-B');mkdirSync(dir,{recursive:true});
+  writeFileSync(join(dir,'run.json'),JSON.stringify({status:'stopped'}));
+  writeFileSync(join(dir,'vulnerabilities.json'),'[]');
+  assert.equal(inspectStrixArtifacts(root,0).status,'STRIX_INCOMPLETE_OR_STOPPED');
 });
