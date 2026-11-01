@@ -29,3 +29,9 @@ Automated fixes to production, secret rotation and server privilege changes requ
 An arbitrary set of 30 valid-looking reports is not the authoritative fleet. The caller must supply the separately verified list of 30 `owner/repo` names as `expectedRepoNames` to obtain a full-fleet policy PASS. The result records `membershipVerified` and a deterministic `inventorySha256` fingerprint. That fingerprint is **not a digital signature**, and this library cannot prove who collected or signed the inventory. Keep the owner-maintained private repository list and any signed manifest outside the public code.
 
 The v3 change does not expand audit coverage, run Strix, verify third-party alerts, or imply enterprise production readiness. Maintain owner-held manifests, real identity/approval controls, and private Audit Ledger.
+
+## Sprint 005 — Fail-closed collection evidence
+
+The `auditRepo(...)` input `inventoryComplete` **defaults to false**. An omitted, null, string, or other nonboolean collection-completeness claim is not accepted as `true`. To inspect a subset, omit `inventoryComplete` and expect `INCOMPLETE`; supply `inventoryComplete:true` only after the caller independently confirms that the listed file-tree inventory is exhaustive. A caller's assertion is still not cryptographic proof of coverage.
+
+This prevents accidental omission of the inventory completeness flag from creating `POLICY_GATE_PASS`. The runtime remains a read-only metadata audit, not a Strix execution. All old unconditional PASS statements should be reassessed under the new default.

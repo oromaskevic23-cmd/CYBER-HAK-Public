@@ -90,3 +90,17 @@ evidence that real GitHub repository administration succeeded.
 
 The mechanism is separate from Strix and from AI Passport, Owner Ed25519,
 Guardian Core, Approval Gateway and production runtime governance.
+
+## Sprint 005 — Read-only enforcement evidence
+
+The repository includes an additional safe, **read-only** configuration inspector:
+
+```sh
+node tools/github-ruleset-readback.mjs --repo oromaskevic23-cmd/CYBER-HAK-Public
+```
+
+It calls GitHub `GET /repos/{owner}/{repo}/rulesets` and the individual ruleset read endpoint. It never sends a POST, PATCH or DELETE and does not consume an administrative write token. An optional Owner-controlled read token for a private repository may be set in `GH_RULESET_READ_TOKEN`; do not paste tokens in chat or commit them.
+
+The only positive receipt is `ACTIVE_RULESET_CONFIGURATION_VERIFIED` after the complete GitHub ruleset object matches the expected `main` branch, required check, no configured bypass actors and PR policy. The receipt explicitly states `actualMergeDenialTested:false`: API configuration is **not** a substitute for the separate negative PR test demonstrating that GitHub rejects a failing check.
+
+A returned 403/404/500, absent or mismatched ruleset, incomplete pagination or malformed API result is `ACCESS_DENIED`, `NOT_FOUND_OR_INACCESSIBLE`, `UNAVAILABLE` or another blocked/unverified status — **never** evidence that branch protection is active. The command returns exit code 2 when protections are not confirmed, without changing the repository. Existing administrative enrollment still requires the Owner-controlled interactive session and plan permissions described above.

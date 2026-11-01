@@ -9,11 +9,12 @@ const fullSha=s=>/^[a-f0-9]{40}$/i.test(s);
 const immutableDockerImage=s=>/^docker:\/\/[a-zA-Z0-9._/-]+(?:\:[A-Za-z0-9._-]+)?@sha256:[a-f0-9]{64}$/i.test(s);
 const maxFindings=2000;
 
-export function auditRepo({name,visibility,paths,workflows,alertCoverage='UNAVAILABLE',inventoryComplete=true}={}) {
+export function auditRepo({name,visibility,paths,workflows,alertCoverage='UNAVAILABLE',inventoryComplete=false}={}) {
   if(typeof name!=='string'||!/^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/.test(name)||
      !['public','private','internal'].includes(visibility)||!Array.isArray(paths)||
      paths.some(p=>typeof p!=='string'||p.length>420)||!object(workflows))
     throw Error('INVALID_INPUT');
+  if(typeof inventoryComplete!=='boolean')throw Error('INVALID_INVENTORY_COMPLETENESS');
   if(!['VERIFIED','UNAVAILABLE','NOT_ENABLED','ACCESS_DENIED'].includes(alertCoverage))
     throw Error('INVALID_ALERT_COVERAGE');
   const unique=[...new Set(paths)];
