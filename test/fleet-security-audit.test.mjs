@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {auditRepo,auditFleet} from '../src/fleet-security-audit.mjs';
+import {auditRepo,auditFleet,verifyRepoEvidence} from '../src/fleet-security-audit.mjs';
 
 const basic=(workflow='name: CI\non:\n  push:\npermissions:\n  contents: read\njobs:\n  verify:\n    steps:\n      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262\n')=>({
   name:'org/product',visibility:'private',paths:['README.md','.github/workflows/check.yml'],
@@ -64,4 +64,57 @@ test('proof digest is repeatable and changes with data',()=>{
 test('extra workflow input not in recorded tree is rejected',()=>{
  const v=basic();v.workflows['.github/workflows/evil.yml']='';
  assert.throws(()=>auditRepo(v),/WORKFLOW_NOT_IN_TREE/);
+});
+
+
+test('medium security finding is not treated as policy clearance',()=>{
+  const r=auditRepo(basic('permissions:\n  contents: read\nsteps:\n  - uses: actions/checkout@v4'));
+  assert.equal(r.summary.medium,1);
+  assert.equal(r.decision,'REMEDIATION_REQUIRED');
+  assert.equal(verifyRepoEvidence(r),true);
+});
+
+test('tampering with fleet finding or summary is rejected',()=>{
+  const clean=auditRepo(basic());
+  const altered={...clean,summary:{...clean.summary,high:0,medium:99}};
+  assert.throws(()=>auditFleet([altered],{expectedRepos:1}),/REPORT_SUMMARY_MISMATCH/);
+  const modified={...clean,paths:'ignored',decision:'REMEDIATION_REQUIRED'};
+  assert.throws(()=>auditFleet([modified],{expectedRepos:1}),/REPORT_SCHEMA_DENIED/);
+  assert.throws(()=>auditFleet([{...clean,pathCount:999}],{expectedRepos:1}),/REPORT_SHA256_MISMATCH/);
+});
+
+test('fleet refuses unverified and incomplete workflow coverage',()=>{
+  const source=auditRepo({...basic(),alertCoverage:'UNAVAILABLE'});
+  const result=auditFleet([source],{expectedRepos:1});
+  assert.equal(result.complete,false);
+  assert.equal(result.outcome,'REVIEW_REQUIRED');
+  const noWorkflow=auditRepo({...basic(),workflows:{}});
+  const another=auditFleet([noWorkflow],{expectedRepos:1});
+  assert.equal(another.complete,false);
+  assert.equal(another.incomplete,1);
+});
+
+test('complete one-repo fleet only accepts verified clean evidence',()=>{
+  const clean=auditRepo(basic());
+  assert.equal(verifyRepoEvidence(clean),true);
+  const result=auditFleet([clean],{expectedRepos:1});
+  assert.equal(result.schema,'cyber-hak.fleet-attestation.v2');
+  assert.equal(result.complete,true);
+  assert.equal(result.outcome,'POLICY_GATE_PASS');
+});
+
+test('specially crafted forged audit claim cannot bypass checks',()=>{
+  const clean=auditRepo(basic());
+  const fake={...clean,alertCoverage:'VERIFIED',findings:[],summary:{high:0,medium:0,incomplete:0}};
+  assert.throws(()=>auditFleet([fake],{expectedRepos:1}),/REPORT_SHA256_MISMATCH/);
+  assert.throws(()=>auditFleet([{...clean,externalEffects:1}],{expectedRepos:1}),/REPORT_PROVENANCE_INVALID/);
+});
+
+test('overcounted and incomplete fleet cannot be certified',()=>{
+  const clean=auditRepo(basic());
+  assert.throws(()=>auditFleet([clean],{expectedRepos:0}),/FLEET_SCHEMA/);
+  assert.throws(()=>auditFleet([clean,clean],{expectedRepos:1}),/FLEET_SCHEMA/);
+  const result=auditFleet([clean],{expectedRepos:30});
+  assert.equal(result.complete,false);
+  assert.equal(result.observedRepos,1);
 });
