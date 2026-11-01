@@ -18,7 +18,11 @@ const safe=()=>({
   CYBER_HAK_STRIX_ISOLATED_HOST:'CONFIRMED',
   STRIX_LLM:'ollama/qwen3-vl',
   LLM_API_BASE:'http://127.0.0.1:11434',
-  CYBER_HAK_STRIX_EXPECTED_VERSION:'1.2.3'
+  CYBER_HAK_STRIX_EXPECTED_VERSION:'1.2.3',
+  CYBER_HAK_STRIX_SIGNED_PERMIT_PATH:'/tmp/synthetic-owner-permit.json',
+  CYBER_HAK_STRIX_OWNER_PUBLIC_KEY_PATH:'/tmp/synthetic-owner-spki.pem',
+  CYBER_HAK_STRIX_OWNER_SPKI_SHA256:'a'.repeat(64),
+  CYBER_HAK_STRIX_NONCE_STORE:'/tmp/synthetic-strix-nonce-store'
 });
 
 test('preflight never claims an exploit scan ran',()=>{
@@ -196,4 +200,31 @@ test('symlinked Strix result folder rejected before evidence parsing',t=>{
   symlinkSync(external,join(root,'strix_runs'),'dir');
   assert.throws(()=>inspectStrixArtifacts(root,0),
     /UNSAFE_STRIX_RUNS_DIRECTORY/);
+});
+
+
+test('signed owner permit path and independent trust root are required for live scanner mode',()=>{
+ for(const key of ['CYBER_HAK_STRIX_SIGNED_PERMIT_PATH',
+                   'CYBER_HAK_STRIX_OWNER_PUBLIC_KEY_PATH',
+                   'CYBER_HAK_STRIX_NONCE_STORE']){
+  const e=safe();delete e[key];
+  assert.throws(()=>assessRuntime(e,'--run'),/OWNER_SIGNED_LAB_CONFIG_REQUIRED/);
+ }
+ const bad=safe();bad.CYBER_HAK_STRIX_OWNER_SPKI_SHA256='not_a_sha256';
+ assert.throws(()=>assessRuntime(bad,'--run'),/OWNER_TRUST_ROOT_UNAVAILABLE/);
+});
+
+test('signed permit files cannot be replaced by relative paths',()=>{
+ for(const key of ['CYBER_HAK_STRIX_SIGNED_PERMIT_PATH',
+                   'CYBER_HAK_STRIX_OWNER_PUBLIC_KEY_PATH',
+                   'CYBER_HAK_STRIX_NONCE_STORE']){
+   const e=safe();e[key]='./some/relative/path';
+   assert.throws(()=>assessRuntime(e,'--run'),/OWNER_SIGNED_LAB_CONFIG_REQUIRED/);
+ }
+});
+
+test('synthetic owner env declarations alone still never count as an actual Strix run',()=>{
+ const e=safe(),r=assessRuntime(e,'--run');
+ assert.equal(r.status,'LOCAL_LAB_ADMISSIBLE_NOT_SCANNED');
+ assert.equal(r.externalEffects,0);
 });
