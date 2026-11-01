@@ -7,7 +7,7 @@
  * host is an external prerequisite; this CLI cannot enforce host networking.
  */
 import {spawnSync} from 'node:child_process';
-import {cpSync,existsSync,lstatSync,mkdtempSync,mkdirSync} from 'node:fs';
+import {cpSync,existsSync,lstatSync,mkdtempSync,mkdirSync,readdirSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {resolve,join} from 'node:path';
 import {fileURLToPath} from 'node:url';
@@ -45,11 +45,9 @@ export function assessRuntime(env={},mode='--preflight') {
 function verifyNoLinks(path){
   if(lstatSync(path).isSymbolicLink())throw Error('SYMLINK_SOURCE_DENIED');
   if(lstatSync(path).isDirectory()){
-    const {readdirSync}=fsShim;
     for(const x of readdirSync(path))verifyNoLinks(join(path,x));
   }
 }
-const fsShim=await import('node:fs');
 
 function command(cmd,args,env,{cwd=root,timeout=15000}={}){
   const result=spawnSync(cmd,args,{cwd,env,timeout,encoding:'utf8',stdio:'pipe'});
@@ -67,12 +65,12 @@ async function main(){
     return;
   }
   const safeEnv={
-    PATH:process.env.PATH,HOME:undefined,DOCKER_HOST:undefined,
+    PATH:process.env.PATH,
     STRIX_LLM:process.env.STRIX_LLM,LLM_API_BASE:process.env.LLM_API_BASE,
     PYTHONUNBUFFERED:'1'
   };
-  command('docker',['info','--format','{{.ServerVersion}}'],process.env);
-  command('strix',['--version'],process.env);
+  command('docker',['info','--format','{{.ServerVersion}}'],safeEnv);
+  command('strix',['--version'],safeEnv);
   const work=mkdtempSync(join(tmpdir(),'cyber-hak-strix-lab-'));
   const staged=join(work,'public-source');
   mkdirSync(staged,{mode:0o700});
