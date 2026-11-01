@@ -12,21 +12,36 @@ const NONCE=/^[A-Za-z0-9_-]{12,80}$/;
 const HEX=/^[a-f0-9]{64}$/;
 const MAX_TTL=5*60*1000;
 const digest=s=>createHash("sha256").update(s).digest("hex");
+const REQUEST_FIELDS=["missionId","tier","action","domain","target"];
+const INVALID_REQUEST_SHA256=digest("CYBER_HAK_INVALID_OR_UNSERIALIZABLE_REQUEST");
+function safeRequest(r) {
+  // Reject accessors, hostile prototypes and proxy traps before reading values.
+  try {
+    if(!r||typeof r!=="object"||Array.isArray(r))return false;
+    const proto=Object.getPrototypeOf(r);
+    if(proto!==Object.prototype&&proto!==null)return false;
+    const keys=Object.keys(r);
+    if(keys.length!==REQUEST_FIELDS.length||
+       !REQUEST_FIELDS.every(k=>keys.includes(k)))return false;
+    const descriptors=Object.getOwnPropertyDescriptors(r);
+    if(REQUEST_FIELDS.some(k=>!Object.hasOwn(descriptors[k],"value")))return false;
+    return typeof r.missionId==="string"&&IDENTIFIER.test(r.missionId)&&
+      ["T0","T1","T2","T3"].includes(r.tier)&&
+      typeof r.action==="string"&&typeof r.domain==="string"&&
+      typeof r.target==="string"&&r.target.length>=3&&r.target.length<=200&&
+      !/[\u0000-\u001f\u007f]/.test(r.target);
+  }catch{return false;}
+}
+function requestHash(r) {
+  if(!safeRequest(r))return INVALID_REQUEST_SHA256;
+  try{return digest(JSON.stringify(r));}
+  catch{return INVALID_REQUEST_SHA256;}
+}
 const deny=(code,request)=>Object.freeze({
   decision:"DENY",reason:code,execution:"NOT_RUN",release:"DENIED",
-  request_sha256:digest(JSON.stringify(request??null)),
+  request_sha256:requestHash(request),
   evidence_level:"E2_POLICY_REFERENCE_NOT_RUNTIME"
 });
-function safeRequest(r) {
-  return !!r&&typeof r==="object"&&!Array.isArray(r)&&
-    IDENTIFIER.test(r.missionId??"")&&
-    ["T0","T1","T2","T3"].includes(r.tier)&&
-    typeof r.action==="string"&&
-    typeof r.domain==="string"&&
-    typeof r.target==="string"&&r.target.length>=3&&r.target.length<=200&&
-    !/[\u0000-\u001f\u007f]/.test(r.target)&&
-    Object.keys(r).every(k=>["missionId","tier","action","domain","target"].includes(k));
-}
 function equals(a,b) {
   return Buffer.byteLength(a)===Buffer.byteLength(b)&&
     timingSafeEqual(Buffer.from(a),Buffer.from(b));
@@ -58,7 +73,13 @@ function verifyApproval(token,secret,now) {
 
 // The permit signer is deliberately EXTERNAL to this package; possession of a mission ID is not approval.
 // An in-memory replay set is not a distributed revocation system or independent human authentication.
-export function decideSecurityAction({request,permit,verificationKey,seenNonces,now=Date.now()}={}) {
+export function decideSecurityAction(input={}) {
+  if(!input||typeof input!=="object"||Array.isArray(input))
+    return deny("INVALID_INVOCATION",null);
+  let request,permit,verificationKey,seenNonces,now;
+  try{
+    ({request,permit,verificationKey,seenNonces,now=Date.now()}=input);
+  }catch{return deny("INVALID_INVOCATION",null);}
   if(!safeRequest(request))return deny("INVALID_REQUEST",request);
   if(request.tier==="T3")return deny("T3_ALWAYS_DENY",request);
   if(!ACTIONS[request.tier].includes(request.action)||DOMAINS[request.tier]!==request.domain)
@@ -74,7 +95,7 @@ export function decideSecurityAction({request,permit,verificationKey,seenNonces,
   return Object.freeze({decision:"PERMITTED_FOR_REVIEW_ONLY",
     reason:"SCOPED_REFERENCE_APPROVAL_VERIFIED",mission_id:request.missionId,
     tier:request.tier,action:request.action,
-    request_sha256:digest(JSON.stringify(request)),
+    request_sha256:requestHash(request),
     evidence_level:"E2_POLICY_REFERENCE_NOT_RUNTIME",
     execution:"NOT_RUN",release:"DENIED"});
 }
