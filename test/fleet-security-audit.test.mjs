@@ -4,7 +4,7 @@ import {auditRepo,auditFleet,verifyRepoEvidence} from '../src/fleet-security-aud
 
 const basic=(workflow='name: CI\non:\n  push:\npermissions:\n  contents: read\njobs:\n  verify:\n    steps:\n      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262\n')=>({
   name:'org/product',visibility:'private',paths:['README.md','.github/workflows/check.yml'],
-  workflows:{'.github/workflows/check.yml':workflow},alertCoverage:'VERIFIED'
+  workflows:{'.github/workflows/check.yml':workflow},alertCoverage:'VERIFIED',inventoryComplete:true
 });
 test('explicit read-only SHA-pinned workflow passes static gate',()=>{
  const r=auditRepo(basic());
@@ -213,4 +213,37 @@ test('commented permissions never satisfy workflow root policy',()=>{
   const source='on: push\n# permissions:\njobs:\n  build:\n    steps: []\n';
   const result=auditRepo(basic(source));
   assert(result.findings.some(f=>f.id==='MISSING_EXPLICIT_PERMISSIONS'));
+});
+
+
+test('missing inventory-complete evidence defaults to INCOMPLETE, never PASS',()=>{
+ const input=basic();delete input.inventoryComplete;
+ const r=auditRepo(input);
+ assert.equal(r.inventoryComplete,false);
+ assert.equal(r.decision,'INCOMPLETE');
+ assert(r.findings.some(x=>x.id==='INCOMPLETE_TREE'));
+ const fleet=auditFleet([r],{expectedRepos:1,expectedRepoNames:['org/product']});
+ assert.equal(fleet.complete,false);
+ assert.equal(fleet.outcome,'REVIEW_REQUIRED');
+});
+
+test('incomplete inventory cannot be silently forced by arbitrary input type',()=>{
+ for(const value of ['true',null,1,{},[]]){
+  assert.throws(()=>auditRepo({...basic(),inventoryComplete:value}),
+    /INVALID_INVENTORY_COMPLETENESS/);
+ }
+});
+
+test('explicitly false inventory always denies even with verified alerts and checked workflow',()=>{
+ const r=auditRepo({...basic(),inventoryComplete:false});
+ assert.equal(r.checkedWorkflows,1);
+ assert.equal(r.alertCoverage,'VERIFIED');
+ assert.equal(r.decision,'INCOMPLETE');
+ assert.equal(verifyRepoEvidence(r),true);
+});
+
+test('explicit trusted full inventory retains existing bounded reference behavior',()=>{
+ const r=auditRepo({...basic(),inventoryComplete:true});
+ assert.equal(r.decision,'POLICY_GATE_PASS');
+ assert.equal(verifyRepoEvidence(r),true);
 });
