@@ -8,6 +8,29 @@
 
 Defensive security and digital immune-system architecture for IMPERIAL Core.
 
+## Enterprise Security — Strix Integration & Fleet Evidence Gate
+
+**Current implementation (2026-11-01):** Strix local-only, owner-gated runner and scoped
+security policy are included at [security/strix](security/strix/README.md).
+The runner is tested through normal CI preflight; an actual Strix assessment has
+**NOT been executed**. There are no Strix-verified vulnerabilities to report yet.
+
+CYBER HAK's independent deterministic repository security auditor has been
+hardened: it now rejects fabricated/unverified fleet reports, misleading PASS
+with MEDIUM findings, and incomplete evidence. The expected fleet count is 30,
+but the number is a verification target, **not** a claim that all 30 have been
+fully audited for vulnerabilities.
+
+The Strix executable runs only on a disposable copy of public, synthetic
+source when the owner explicitly authorizes a separately egress-isolated host,
+Docker and a local capable Ollama model. It has no access to production
+secrets, financial systems or the private NCA runtime by design. The security
+boundary is documented in [Strix scope](security/strix/SCOPE.md).
+
+**Safety hierarchy:** Owner → HANTER → federated security orchestrator →
+CYBER HAK → independent QA → ProofGraph → Audit Ledger → Approval Gateway.
+No tool output grants production privileges or bypasses the Owner Kill Switch.
+
 **Status: TESTED — bounded defensive references; AuditShield v0.2 evidence is open PR #1.**  
 Evidence checkpoint: **25 October 2026**.
 
