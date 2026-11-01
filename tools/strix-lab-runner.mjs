@@ -8,10 +8,12 @@
  */
 import {spawnSync} from 'node:child_process';
 import {createHash} from 'node:crypto';
-import {cpSync,existsSync,lstatSync,mkdtempSync,mkdirSync,readdirSync,readFileSync,writeFileSync,openSync,closeSync} from 'node:fs';
+import {cpSync,existsSync,lstatSync,mkdtempSync,mkdirSync,readdirSync,readFileSync,writeFileSync,openSync,closeSync,rmSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {resolve,join,relative} from 'node:path';
 import {fileURLToPath} from 'node:url';
+import {verifySignedLabPermit,consumeLocalLabNonce}
+ from '../security/strix/signed-permit.mjs';
 
 const root=resolve(fileURLToPath(new URL('..',import.meta.url)));
 const SOURCE_DIRS=Object.freeze(['src','test','tools']);
@@ -135,6 +137,14 @@ export function assessRuntime(env={},mode='--preflight') {
        'SUPABASE_ACCESS_TOKEN','AWS_ACCESS_KEY_ID','AWS_SECRET_ACCESS_KEY',
        'GOOGLE_APPLICATION_CREDENTIALS','STRIPE_SECRET_KEY'].some(k=>env[k]))
     throw Error('PRIVILEGED_OR_EXTERNAL_SECRET_ENV_DENIED');
+  if(['CYBER_HAK_STRIX_SIGNED_PERMIT_PATH',
+       'CYBER_HAK_STRIX_OWNER_PUBLIC_KEY_PATH',
+       'CYBER_HAK_STRIX_NONCE_STORE'].some(k=>
+       typeof env[k]!=='string'||!env[k].startsWith('/')))
+    throw Error('OWNER_SIGNED_LAB_CONFIG_REQUIRED');
+  if(typeof env.CYBER_HAK_STRIX_OWNER_SPKI_SHA256!=='string'||
+     !/^[a-f0-9]{64}$/.test(env.CYBER_HAK_STRIX_OWNER_SPKI_SHA256))
+    throw Error('OWNER_TRUST_ROOT_UNAVAILABLE');
   return {status:'LOCAL_LAB_ADMISSIBLE_NOT_SCANNED',mode,
     target:'DISPOSABLE_PUBLIC_SOURCE_COPY_ONLY',externalEffects:0};
 }
@@ -152,13 +162,53 @@ function command(cmd,args,env,{cwd=root,timeout=15000}={}){
   return result;
 }
 
+function scopedSnapshot(work){
+ const staged=join(work,'public-source');
+ mkdirSync(staged,{mode:0o700});
+ for(const dir of SOURCE_DIRS){
+   const p=join(root,dir);
+   if(!existsSync(p))throw Error('REQUIRED_SOURCE_MISSING');
+   verifyNoLinks(p);
+   sourceFingerprint(p);
+   cpSync(p,join(staged,dir),{recursive:true,dereference:false});
+ }
+ for(const name of SOURCE_FILES){
+   const p=join(root,name);
+   if(!existsSync(p))throw Error('REQUIRED_SOURCE_MISSING');
+   verifyNoLinks(p);
+   cpSync(p,join(staged,name),{dereference:false});
+ }
+ const guide=join(root,'security','strix','SCOPE.md');
+ verifyNoLinks(guide);
+ cpSync(guide,join(work,'SCOPE.md'));
+ return {staged,sourceBefore:sourceFingerprint(staged),
+   scopeSha256:sha(readFileSync(join(work,'SCOPE.md')))};
+}
+
+function boundedPublicFile(path,maxBytes=8192){
+ const st=lstatSync(path);
+ if(st.isSymbolicLink()||!st.isFile()||st.size>maxBytes)
+   throw Error('UNSAFE_SIGNED_LAB_CONFIG_FILE');
+ const raw=readFileSync(path);
+ if(raw.length>maxBytes)throw Error('UNSAFE_SIGNED_LAB_CONFIG_FILE');
+ return raw.toString('utf8');
+}
+
 async function main(){
   if(process.argv.length!==3||!modes.has(process.argv[2]))
     throw Error('USAGE_NODE_TOOLS_STRIX_LAB_RUNNER_MJS_PREFLIGHT_OR_RUN');
   const mode=process.argv[2];
   const plan=assessRuntime(process.env,mode);
   if(mode==='--preflight'){
-    console.log(JSON.stringify(plan,null,2));
+    const preflight=mkdtempSync(join(tmpdir(),'cyber-hak-strix-plan-'));
+    try{
+      const scoped=scopedSnapshot(preflight);
+      console.log(JSON.stringify({...plan,
+        sourceSha256:scoped.sourceBefore.sha256,
+        scopeSha256:scoped.scopeSha256,
+        signedOwnerPermit:'NOT_VERIFIED_OR_CONSUMED',
+        note:'SOURCE_DIGEST_ONLY; preflight cannot perform a pentest'},null,2));
+    }finally{rmSync(preflight,{recursive:true,force:true});}
     return;
   }
   const safeEnv={
@@ -173,36 +223,39 @@ async function main(){
   if(!foundVersions.includes(process.env.CYBER_HAK_STRIX_EXPECTED_VERSION))
     throw Error('STRIX_VERSION_MISMATCH');
   const work=mkdtempSync(join(tmpdir(),'cyber-hak-strix-lab-'));
-  const staged=join(work,'public-source');
-  mkdirSync(staged,{mode:0o700});
-  for(const dir of SOURCE_DIRS){
-    const p=join(root,dir);
-    if(!existsSync(p))throw Error('REQUIRED_SOURCE_MISSING');
-    verifyNoLinks(p);
-    sourceFingerprint(p);
-    cpSync(p,join(staged,dir),{recursive:true,dereference:false});
-  }
-  for(const name of SOURCE_FILES){
-    const p=join(root,name);
-    if(!existsSync(p))throw Error('REQUIRED_SOURCE_MISSING');
-    verifyNoLinks(p);
-    cpSync(p,join(staged,name),{dereference:false});
-  }
-  const guide=join(root,'security','strix','SCOPE.md');
-  verifyNoLinks(guide);
-  cpSync(guide,join(work,'SCOPE.md'));
+  const {staged,sourceBefore,scopeSha256}=scopedSnapshot(work);
   safeEnv.HOME=join(work,'home');
   mkdirSync(safeEnv.HOME,{mode:0o700});
-  const sourceBefore=sourceFingerprint(staged);
+  const permit=JSON.parse(boundedPublicFile(
+    process.env.CYBER_HAK_STRIX_SIGNED_PERMIT_PATH));
+  const ownerPublicKeyPem=boundedPublicFile(
+    process.env.CYBER_HAK_STRIX_OWNER_PUBLIC_KEY_PATH);
+  const authorization=verifySignedLabPermit({
+    permit,ownerPublicKeyPem,
+    trustedOwnerSpkiSha256:process.env.CYBER_HAK_STRIX_OWNER_SPKI_SHA256,
+    expectedTargetSha256:sourceBefore.sha256,expectedScopeSha256:scopeSha256,
+    expectedModel:process.env.STRIX_LLM,
+    expectedVersion:process.env.CYBER_HAK_STRIX_EXPECTED_VERSION,
+    expectedBudgetUsd:LAB_BUDGET_USD
+  });
   writeFileSync(join(work,'source-provenance.json'),JSON.stringify({
     schema:'cyber-hak.strix.source-provenance.v2',
-    source:sourceBefore,scopeSha256:sha(readFileSync(join(work,'SCOPE.md'))),
+    source:sourceBefore,scopeSha256,
     expectedStrixVersion:process.env.CYBER_HAK_STRIX_EXPECTED_VERSION,
     model:process.env.STRIX_LLM,budgetUsd:LAB_BUDGET_USD,
+    ownerPermitSha256:authorization.permitSha256,
+    ownerSpkiSha256:authorization.ownerSpkiSha256,
+    ownerAdmission:'ED25519_SCOPE_ONLY_NOT_DEPLOYMENT',
     productionAuthorized:false
   },null,2)+'\n',{flag:'wx',mode:0o600});
   console.log(JSON.stringify({status:'STRIX_LOCAL_SCAN_STARTING_NO_QA',
     sourceSha256:sourceBefore.sha256,production:false}));
+  // Atomically reserve this signed mission nonce BEFORE any scanner process.
+  // An enrolled Owner trust anchor and independently egress-filtered host
+  // are external prerequisites; this check alone does not establish them.
+  consumeLocalLabNonce(authorization,{
+    storePath:process.env.CYBER_HAK_STRIX_NONCE_STORE
+  });
   // Untrusted Strix output is private to the disposable host, NOT streamed to CI.
   const fd=openSync(join(work,'strix-private.log'),'wx',0o600);
   let proc;
