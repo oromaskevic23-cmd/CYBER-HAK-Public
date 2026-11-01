@@ -126,18 +126,84 @@ test('incomplete Strix artifact directory cannot count as completed assessment',
   assert.equal(inspectStrixArtifacts(root,0).status,'STRIX_EVIDENCE_INCOMPLETE');
   const dir=join(root,'strix_runs','run-A');
   mkdirSync(dir,{recursive:true});
-  writeFileSync(join(dir,'run.json'),JSON.stringify({status:'completed'}));
+  const target=join(root,'public-source');
+  writeFileSync(join(dir,'run.json'),JSON.stringify({status:'completed',
+    targets_info:[{original:target}],llm_usage:{cost:0}}));
   assert.equal(inspectStrixArtifacts(root,0).status,'STRIX_EVIDENCE_INCOMPLETE');
   writeFileSync(join(dir,'vulnerabilities.json'),'[]');
-  assert.equal(inspectStrixArtifacts(root,0).status,'STRIX_REPORTED_NO_FINDINGS_QA_PENDING');
-  assert.equal(inspectStrixArtifacts(root,0).independentQA,false);
+  assert.equal(inspectStrixArtifacts(root,0,{expectedTarget:target}).status,
+    'STRIX_REPORTED_NO_FINDINGS_QA_PENDING');
+  assert.equal(inspectStrixArtifacts(root,0,{expectedTarget:target}).independentQA,false);
 });
 
 test('Strix early budget stop is incomplete regardless of zero tool exit',t=>{
   const root=mkdtempSync(join(tmpdir(),'imperial-strix-stopped-'));
   t.after(()=>rmSync(root,{force:true,recursive:true}));
   const dir=join(root,'strix_runs','run-B');mkdirSync(dir,{recursive:true});
-  writeFileSync(join(dir,'run.json'),JSON.stringify({status:'stopped'}));
+  const target=join(root,'public-source');
+  writeFileSync(join(dir,'run.json'),JSON.stringify({status:'stopped',
+    targets_info:[{original:target}],llm_usage:{cost:0}}));
   writeFileSync(join(dir,'vulnerabilities.json'),'[]');
-  assert.equal(inspectStrixArtifacts(root,0).status,'STRIX_INCOMPLETE_OR_STOPPED');
+  assert.equal(inspectStrixArtifacts(root,0,{expectedTarget:target}).status,
+    'STRIX_INCOMPLETE_OR_STOPPED');
+});
+
+
+test('Strix report from another target cannot certify the current sandbox',t=>{
+  const root=mkdtempSync(join(tmpdir(),'imperial-strix-wrong-target-'));
+  t.after(()=>rmSync(root,{force:true,recursive:true}));
+  const dir=join(root,'strix_runs','run-C');mkdirSync(dir,{recursive:true});
+  writeFileSync(join(dir,'run.json'),JSON.stringify({
+    status:'completed',targets_info:[{original:join(root,'foreign')}],
+    llm_usage:{cost:0}
+  }));
+  writeFileSync(join(dir,'vulnerabilities.json'),'[]');
+  assert.equal(inspectStrixArtifacts(root,0,{expectedTarget:join(root,'public-source')}).status,
+    'STRIX_TARGET_BINDING_UNVERIFIED');
+});
+
+test('Strix completed run at budget limit cannot claim even bounded clean result',t=>{
+  const root=mkdtempSync(join(tmpdir(),'imperial-strix-budget-'));
+  t.after(()=>rmSync(root,{force:true,recursive:true}));
+  const target=join(root,'public-source'),dir=join(root,'strix_runs','run-D');
+  mkdirSync(dir,{recursive:true});
+  writeFileSync(join(dir,'run.json'),JSON.stringify({
+    status:'completed',targets_info:[{original:target}],
+    llm_usage:{cost:0.0095}
+  }));
+  writeFileSync(join(dir,'vulnerabilities.json'),'[]');
+  assert.equal(inspectStrixArtifacts(root,0,{expectedTarget:target}).status,
+    'STRIX_BUDGET_LIMIT_COVERAGE_UNVERIFIED');
+});
+
+test('Strix missing or invalid LLM usage evidence is not accepted as clean',t=>{
+  const root=mkdtempSync(join(tmpdir(),'imperial-strix-unknown-usage-'));
+  t.after(()=>rmSync(root,{force:true,recursive:true}));
+  const target=join(root,'public-source'),dir=join(root,'strix_runs','run-E');
+  mkdirSync(dir,{recursive:true});
+  writeFileSync(join(dir,'run.json'),JSON.stringify({
+    status:'completed',targets_info:[{original:target}]
+  }));
+  writeFileSync(join(dir,'vulnerabilities.json'),'[]');
+  assert.equal(inspectStrixArtifacts(root,0,{expectedTarget:target}).status,
+    'STRIX_USAGE_EVIDENCE_INCOMPLETE');
+  writeFileSync(join(dir,'run.json'),JSON.stringify({
+    status:'completed',targets_info:[{original:target}],llm_usage:{cost:-1}
+  }));
+  assert.equal(inspectStrixArtifacts(root,0,{expectedTarget:target}).status,
+    'STRIX_USAGE_EVIDENCE_INCOMPLETE');
+});
+
+test('Strix multi-target metadata cannot escape the approved source-only scope',t=>{
+  const root=mkdtempSync(join(tmpdir(),'imperial-strix-multi-target-'));
+  t.after(()=>rmSync(root,{force:true,recursive:true}));
+  const target=join(root,'public-source'),dir=join(root,'strix_runs','run-F');
+  mkdirSync(dir,{recursive:true});
+  writeFileSync(join(dir,'run.json'),JSON.stringify({
+    status:'completed',targets_info:[{original:target},
+    {original:'https://unexpected.example.invalid'}],llm_usage:{cost:0}
+  }));
+  writeFileSync(join(dir,'vulnerabilities.json'),'[]');
+  assert.equal(inspectStrixArtifacts(root,0,{expectedTarget:target}).status,
+    'STRIX_TARGET_BINDING_UNVERIFIED');
 });
