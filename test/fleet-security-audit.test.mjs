@@ -171,3 +171,46 @@ test('trusted exact inventory digest is ordering-insensitive and evidence-bound'
   assert.equal(x.complete,true);
   assert.equal(x.outcome,'POLICY_GATE_PASS');
 });
+
+
+test('root token permissions cannot be spoofed by nested job-level permissions',()=>{
+  const source='name: CI\non: push\njobs:\n  build:\n    permissions:\n      contents: read\n';
+  const result=auditRepo(basic(source));
+  assert(result.findings.some(f=>f.id==='MISSING_EXPLICIT_PERMISSIONS'));
+  assert.equal(result.decision,'REMEDIATION_REQUIRED');
+});
+
+test('unrestricted write-all token is always a high-severity finding',()=>{
+  const source='on:\n  push:\npermissions: write-all\njobs:\n  job:\n    steps: []\n';
+  const result=auditRepo(basic(source));
+  assert(result.findings.some(f=>f.id==='WORKFLOW_WRITE_ALL'&&f.severity==='HIGH'));
+  assert.equal(result.decision,'REMEDIATION_REQUIRED');
+});
+
+test('OIDC token write requires independent review even on push events',()=>{
+  const source='on:\n  push:\npermissions:\n  contents: read\n  id-token: write\n';
+  const result=auditRepo(basic(source));
+  assert(result.findings.some(f=>f.id==='OIDC_TOKEN_WRITE_REQUIRES_REVIEW'&&f.severity==='HIGH'));
+});
+
+test('digest-pinned Docker action is not falsely classified as mutable',()=>{
+  const source='on: push\npermissions:\n  contents: read\nsteps:\n  - uses: docker://alpine:3.21@sha256:'+
+    'a'.repeat(64)+'\n';
+  const result=auditRepo(basic(source));
+  assert.equal(result.decision,'POLICY_GATE_PASS');
+  assert.equal(result.summary.medium,0);
+  assert.equal(result.summary.high,0);
+});
+
+test('truncated Docker action digest is denied',()=>{
+  const source='on: push\npermissions:\n  contents: read\nsteps:\n  - uses: docker://alpine@sha256:abcd\n';
+  const result=auditRepo(basic(source));
+  assert(result.findings.some(f=>f.id==='UNPINNED_DOCKER_IMAGE'));
+  assert.equal(result.decision,'REMEDIATION_REQUIRED');
+});
+
+test('commented permissions never satisfy workflow root policy',()=>{
+  const source='on: push\n# permissions:\njobs:\n  build:\n    steps: []\n';
+  const result=auditRepo(basic(source));
+  assert(result.findings.some(f=>f.id==='MISSING_EXPLICIT_PERMISSIONS'));
+});
