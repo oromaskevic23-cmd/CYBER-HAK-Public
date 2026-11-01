@@ -64,22 +64,82 @@ export function auditRepo({name,visibility,paths,workflows,alertCoverage='UNAVAI
     pathCount:unique.length,workflowCount:workflowNames.length,
     checkedWorkflows:workflowNames.length-found.filter(x=>x.id==='WORKFLOW_NOT_READ'||x.id==='WORKFLOW_TOO_LARGE').length,
     alertCoverage,inventoryComplete,summary,findings:found,
-    decision:summary.high?'REMEDIATION_REQUIRED':summary.incomplete?'INCOMPLETE':'POLICY_GATE_PASS',
+    decision:summary.high||summary.medium?'REMEDIATION_REQUIRED':summary.incomplete?'INCOMPLETE':'POLICY_GATE_PASS',
     claim:'STATIC_REPOSITORY_POLICY_ONLY_NO_EXPLOIT_OR_FULL_SCA',
     externalEffects:0};
   return {...report,evidenceSha256:sha(JSON.stringify(report))};
 }
 
-export function auditFleet(reports,{expectedRepos=29}={}) {
-  if(!Array.isArray(reports)||!Number.isSafeInteger(expectedRepos)||expectedRepos<1)throw Error('FLEET_SCHEMA');
-  const names=reports.map(x=>x.repo);
-  if(names.some(x=>typeof x!=='string')||new Set(names).size!==names.length)throw Error('DUPLICATE_FLEET_REPOS');
-  const report={schema:'cyber-hak.fleet-attestation.v1',expectedRepos,observedRepos:reports.length,
-    complete:reports.length===expectedRepos&&reports.every(r=>r.inventoryComplete&&r.alertCoverage==='VERIFIED'),
+/**
+ * Verify the *complete* content-addressed audit envelope before aggregation.
+ * SHA-256 is an accidental-corruption checksum, NOT a signature or proof of origin:
+ * fleet inventory evidence still requires separate trusted collection and signing.
+ */
+export function verifyRepoEvidence(report) {
+  if(!object(report) ||
+     Object.keys(report).sort().join('|') !==
+       ['schema','repo','visibility','pathCount','workflowCount','checkedWorkflows',
+        'alertCoverage','inventoryComplete','summary','findings','decision','claim',
+        'externalEffects','evidenceSha256'].sort().join('|')) throw Error('REPORT_SCHEMA_DENIED');
+  const full=/^[a-f0-9]{64}$/;
+  if(report.schema!=='cyber-hak.readonly-fleet-audit.v1' ||
+    typeof report.repo!=='string' ||
+    !/^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/.test(report.repo) ||
+    !['public','private','internal'].includes(report.visibility) ||
+    !['VERIFIED','UNAVAILABLE','NOT_ENABLED','ACCESS_DENIED'].includes(report.alertCoverage) ||
+    typeof report.inventoryComplete!=='boolean' ||
+    report.externalEffects!==0 ||
+    report.claim!=='STATIC_REPOSITORY_POLICY_ONLY_NO_EXPLOIT_OR_FULL_SCA' ||
+    !full.test(report.evidenceSha256)) throw Error('REPORT_PROVENANCE_INVALID');
+  for(const key of ['pathCount','workflowCount','checkedWorkflows']){
+    if(!Number.isSafeInteger(report[key]) || report[key]<0 || report[key]>1000000)
+      throw Error('REPORT_COUNTS_INVALID');
+  }
+  if(report.checkedWorkflows>report.workflowCount || report.workflowCount>report.pathCount)
+    throw Error('REPORT_COUNTS_INVALID');
+  if(!Array.isArray(report.findings) || report.findings.length>maxFindings ||
+      report.findings.some(f=>!object(f)||
+        Object.keys(f).sort().join('|')!=='detail|id|path|severity' ||
+        !['HIGH','MEDIUM','LOW','INCOMPLETE'].includes(f.severity) ||
+        ![f.id,f.path,f.detail].every(s=>typeof s==='string'&&s.length>0&&s.length<=600)))
+    throw Error('REPORT_FINDINGS_INVALID');
+  if(!object(report.summary) ||
+    Object.keys(report.summary).sort().join('|')!=='high|incomplete|medium')
+    throw Error('REPORT_SUMMARY_INVALID');
+  const tally={
+    high:report.findings.filter(f=>f.severity==='HIGH').length,
+    medium:report.findings.filter(f=>f.severity==='MEDIUM').length,
+    incomplete:report.findings.filter(f=>f.severity==='INCOMPLETE').length
+  };
+  if(Object.keys(tally).some(k=>report.summary[k]!==tally[k]))
+    throw Error('REPORT_SUMMARY_MISMATCH');
+  const expectedDecision=tally.high||tally.medium?'REMEDIATION_REQUIRED':
+    tally.incomplete?'INCOMPLETE':'POLICY_GATE_PASS';
+  if(report.decision!==expectedDecision) throw Error('REPORT_DECISION_MISMATCH');
+  const {evidenceSha256,...unsigned}=report;
+  if(sha(JSON.stringify(unsigned))!==evidenceSha256)
+    throw Error('REPORT_SHA256_MISMATCH');
+  return true;
+}
+
+export function auditFleet(reports,{expectedRepos=30}={}) {
+  if(!Array.isArray(reports)||!Number.isSafeInteger(expectedRepos)||
+     expectedRepos<1||expectedRepos>100000||reports.length>expectedRepos)
+    throw Error('FLEET_SCHEMA');
+  const names=reports.map(x=>x?.repo);
+  if(names.some(x=>typeof x!=='string')||new Set(names).size!==names.length)
+    throw Error('DUPLICATE_FLEET_REPOS');
+  for(const r of reports)verifyRepoEvidence(r);
+  const report={schema:'cyber-hak.fleet-attestation.v2',expectedRepos,observedRepos:reports.length,
+    complete:reports.length===expectedRepos&&reports.every(r=>
+      r.inventoryComplete&&r.alertCoverage==='VERIFIED'&&
+      r.checkedWorkflows===r.workflowCount&&r.summary.incomplete===0&&
+      r.decision==='POLICY_GATE_PASS'),
     high:reports.reduce((a,r)=>a+r.summary.high,0),
     medium:reports.reduce((a,r)=>a+r.summary.medium,0),
     incomplete:reports.reduce((a,r)=>a+r.summary.incomplete,0),
     outcome:'UNVERIFIED',externalEffects:0};
-  report.outcome=report.complete&&report.high===0&&report.medium===0?'POLICY_GATE_PASS':'REVIEW_REQUIRED';
+  report.outcome=report.complete&&report.high===0&&report.medium===0&&
+    report.incomplete===0?'POLICY_GATE_PASS':'REVIEW_REQUIRED';
   return {...report,evidenceSha256:sha(JSON.stringify(report))};
 }

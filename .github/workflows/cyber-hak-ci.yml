@@ -7,6 +7,7 @@ on:
       - 'test/**'
       - 'tools/**'
       - 'registry/**'
+      - 'security/strix/**'
       - 'PUBLIC-MANIFEST.json'
       - 'package.json'
       - '.github/workflows/cyber-hak-ci.yml'
