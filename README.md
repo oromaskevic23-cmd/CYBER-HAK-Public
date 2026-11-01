@@ -8,6 +8,8 @@
 
 Defensive security and digital immune-system architecture for IMPERIAL Core.
 
+[Enterprise Security Checkpoint — 1 November 2026](docs/ENTERPRISE_SECURITY_CHECKPOINT_20261101.md) — confirmed regression evidence, limitations and next controlled security gates.
+
 ## Enterprise Security — Strix Integration & Fleet Evidence Gate
 
 **Current implementation (2026-11-01):** Strix local-only, owner-gated runner and scoped
