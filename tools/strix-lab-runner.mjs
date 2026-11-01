@@ -216,12 +216,6 @@ async function main(){
     STRIX_LLM:process.env.STRIX_LLM,LLM_API_BASE:process.env.LLM_API_BASE,
     PYTHONUNBUFFERED:'1'
   };
-  command('docker',['info','--format','{{.ServerVersion}}'],safeEnv);
-  const version=command('strix',['--version'],safeEnv);
-  const foundVersions=((version.stdout||'')+'\n'+(version.stderr||''))
-    .match(/[0-9]+\.[0-9]+\.[0-9]+(?:[-+][A-Za-z0-9.-]+)?/g)||[];
-  if(!foundVersions.includes(process.env.CYBER_HAK_STRIX_EXPECTED_VERSION))
-    throw Error('STRIX_VERSION_MISMATCH');
   const work=mkdtempSync(join(tmpdir(),'cyber-hak-strix-lab-'));
   const {staged,sourceBefore,scopeSha256}=scopedSnapshot(work);
   safeEnv.HOME=join(work,'home');
@@ -238,6 +232,16 @@ async function main(){
     expectedVersion:process.env.CYBER_HAK_STRIX_EXPECTED_VERSION,
     expectedBudgetUsd:LAB_BUDGET_USD
   });
+  // No external security scanner or Docker binary is called until Owner
+  // Ed25519 scope, source digest and trust root have been validated.
+  command('docker',['info','--format','{{.ServerVersion}}'],safeEnv);
+  const version=command('strix',['--version'],safeEnv);
+  const foundVersions=((version.stdout||'')+'\n'+(version.stderr||''))
+    .match(/[0-9]+\.[0-9]+\.[0-9]+(?:[-+][A-Za-z0-9.-]+)?/g)||[];
+  if(!foundVersions.includes(process.env.CYBER_HAK_STRIX_EXPECTED_VERSION))
+    throw Error('STRIX_VERSION_MISMATCH');
+
+
   writeFileSync(join(work,'source-provenance.json'),JSON.stringify({
     schema:'cyber-hak.strix.source-provenance.v2',
     source:sourceBefore,scopeSha256,
@@ -264,12 +268,15 @@ async function main(){
       '-n','--target',staged,'--scan-mode','quick','--scope-mode','full',
       '--max-turns','80','--max-budget',LAB_BUDGET_USD,
       '--instruction-file',join(work,'SCOPE.md')
-    ],{cwd:work,env:safeEnv,stdio:['ignore',fd,fd],timeout:30*60*1000});
+    ],{cwd:work,env:safeEnv,stdio:['ignore',fd,fd],
+      timeout:Math.max(1,Math.min(30*60*1000,permit.payload.expiresAt-Date.now()))});
   }finally{closeSync(fd);}
   const sourceAfter=sourceFingerprint(staged);
   const evidence=proc.error||proc.signal?
     {status:'STRIX_PROCESS_ERROR',findingsCount:null}:
-    inspectStrixArtifacts(work,proc.status);
+    Date.now()>=permit.payload.expiresAt?
+      {status:'STRIX_OWNER_PERMIT_EXPIRED',findingsCount:null}:
+      inspectStrixArtifacts(work,proc.status);
   const receipt={
     schema:'cyber-hak.strix.execution-receipt.v2',
     ...evidence,exitCode:proc.status??null,
