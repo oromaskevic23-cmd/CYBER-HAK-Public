@@ -111,3 +111,53 @@ test("signed approval for a prohibited high-risk action remains denied",()=>{
  const request={...mission,tier:"T2",action:"delete_evidence",domain:"ISOLATED_LAB"};
  assert.equal(run({request,permit:sign(request)}).reason,"CAPABILITY_OR_DOMAIN_DENIED");
 });
+
+
+test("circular input is denied instead of crashing the policy process",()=>{
+ const request={...mission};request.self=request;
+ const outcome=run({request});
+ assert.equal(outcome.decision,"DENY");
+ assert.equal(outcome.reason,"INVALID_REQUEST");
+ assert.equal(outcome.execution,"NOT_RUN");
+ assert.match(outcome.request_sha256,/^[a-f0-9]{64}$/);
+});
+
+test("BigInt in an unexpected field fails closed without JSON errors",()=>{
+ const outcome=run({request:{...mission,untrusted:123n}});
+ assert.equal(outcome.decision,"DENY");
+ assert.equal(outcome.release,"DENIED");
+});
+
+test("accessor-based request is denied without invoking getter",()=>{
+ let invoked=0;
+ const request={...mission};
+ Object.defineProperty(request,"target",{enumerable:true,get(){
+   invoked++;throw Error("getter should never run");
+ }});
+ const outcome=run({request});
+ assert.equal(outcome.decision,"DENY");
+ assert.equal(invoked,0);
+});
+
+test("proxy trap cannot crash the defensive policy gate",()=>{
+ const request=new Proxy({...mission},{ownKeys(){throw Error("hostile trap")}});
+ const outcome=run({request});
+ assert.equal(outcome.decision,"DENY");
+ assert.equal(outcome.execution,"NOT_RUN");
+});
+
+test("null and unexpected invocation types return denial, not exceptions",()=>{
+ for(const input of [null,false,13,"invalid",[]]){
+   const outcome=decideSecurityAction(input);
+   assert.equal(outcome.decision,"DENY");
+   assert.equal(outcome.reason,"INVALID_INVOCATION");
+ }
+});
+
+test("requests with surprising prototypes are never authorized",()=>{
+ const request=Object.create({toJSON(){throw Error("hostile serializer")}});
+ Object.assign(request,mission);
+ const outcome=run({request});
+ assert.equal(outcome.decision,"DENY");
+ assert.equal(outcome.reason,"INVALID_REQUEST");
+});
