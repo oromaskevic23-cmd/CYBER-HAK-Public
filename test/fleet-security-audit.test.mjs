@@ -97,8 +97,8 @@ test('fleet refuses unverified and incomplete workflow coverage',()=>{
 test('complete one-repo fleet only accepts verified clean evidence',()=>{
   const clean=auditRepo(basic());
   assert.equal(verifyRepoEvidence(clean),true);
-  const result=auditFleet([clean],{expectedRepos:1});
-  assert.equal(result.schema,'cyber-hak.fleet-attestation.v2');
+  const result=auditFleet([clean],{expectedRepos:1,expectedRepoNames:['org/product']});
+  assert.equal(result.schema,'cyber-hak.fleet-attestation.v3');
   assert.equal(result.complete,true);
   assert.equal(result.outcome,'POLICY_GATE_PASS');
 });
@@ -128,4 +128,46 @@ test('fabricated one-repo PASS without any real scanner evidence is denied',()=>
     summary:{high:0,medium:0,incomplete:0}
   };
   assert.throws(()=>auditFleet([forged],{expectedRepos:1}),/REPORT_SCHEMA_DENIED/);
+});
+
+
+test('one repo cannot prove full-fleet identity without trusted expected names',()=>{
+  const r=auditRepo(basic());
+  const out=auditFleet([r],{expectedRepos:1});
+  assert.equal(out.membershipVerified,false);
+  assert.equal(out.complete,false);
+  assert.equal(out.outcome,'REVIEW_REQUIRED');
+  assert.equal(out.inventorySha256,null);
+});
+
+test('substitution attack cannot replace an expected repo with a different clean repo',()=>{
+  const r=auditRepo(basic());
+  const result=auditFleet([r],{
+    expectedRepos:1,expectedRepoNames:['org/expected-repo']
+  });
+  assert.equal(result.membershipVerified,false);
+  assert.equal(result.complete,false);
+  assert.equal(result.outcome,'REVIEW_REQUIRED');
+});
+
+test('duplicate or malformed trusted inventory fails closed',()=>{
+  const r=auditRepo(basic());
+  assert.throws(()=>auditFleet([r],{expectedRepos:2,
+    expectedRepoNames:['org/product','org/product']}),/TRUSTED_INVENTORY_SCHEMA_DENIED/);
+  assert.throws(()=>auditFleet([r],{expectedRepos:1,
+    expectedRepoNames:['some-public-url']}),/TRUSTED_INVENTORY_SCHEMA_DENIED/);
+  assert.throws(()=>auditFleet([r],{expectedRepos:1,
+    expectedRepoNames:[]}),/TRUSTED_INVENTORY_SCHEMA_DENIED/);
+});
+
+test('trusted exact inventory digest is ordering-insensitive and evidence-bound',()=>{
+  const a=auditRepo(basic()),b=auditRepo({...basic(),name:'org/product-two'});
+  const x=auditFleet([a,b],{expectedRepos:2,
+    expectedRepoNames:['org/product-two','org/product']});
+  const y=auditFleet([a,b],{expectedRepos:2,
+    expectedRepoNames:['org/product','org/product-two']});
+  assert.equal(x.inventorySha256,y.inventorySha256);
+  assert.match(x.inventorySha256,/^[a-f0-9]{64}$/);
+  assert.equal(x.complete,true);
+  assert.equal(x.outcome,'POLICY_GATE_PASS');
 });

@@ -4,7 +4,7 @@
 
 It identifies mutable action references, missing explicit token permissions, write tokens on externally influenced events, dangerous shell interpolations, remote pipe-to-shell patterns, tracked credential-like paths, and missing workflow evidence. It cannot prove absence of vulnerabilities, inspect unprovided private source or test an external service.
 
-`auditRepo({name,visibility,paths,workflows,alertCoverage,inventoryComplete})` returns a SHA-256 evidence digest for the precise observed inputs and a fail-closed decision. `auditFleet(reports,{expectedRepos:30})` refuses a full-coverage claim unless exactly 30 distinct repository reports exist **and** their tree and GitHub Security alerts coverage are complete.
+`auditRepo({name,visibility,paths,workflows,alertCoverage,inventoryComplete})` returns a SHA-256 evidence digest for the precise observed inputs and a fail-closed decision. `auditFleet(reports,{expectedRepos:30,expectedRepoNames})` refuses a full-coverage claim unless exactly 30 distinct repository reports match an **independently supplied exact-name inventory** and their tree and GitHub Security alerts coverage are complete. Omitting `expectedRepoNames` is permitted for partial analysis, but **always prevents `POLICY_GATE_PASS`**, even when 30 reports are provided.
 
 An upstream scanner missing permissions must report `INCOMPLETE` or `ACCESS_DENIED`; an empty alert response is only meaningful when the appropriate API returned an authorized 200 with all pages accounted for.
 
@@ -23,3 +23,9 @@ npm run verify
 Run negative cases with `node --test test/fleet-security-audit.test.mjs`. A green unit test establishes only that the policies behave as tested. It does not establish that 30/30 repositories are clean. Every supplied report is schema-and-checksum-validated before aggregation. MEDIUM findings and missing workflow evidence prevent a fleet PASS. SHA-256 is **not** an Ed25519 signature; source provenance still requires trusted collection and independent signing. See [Strix lab integration](../security/strix/README.md), which is not a substitute for the static audit.
 
 Automated fixes to production, secret rotation and server privilege changes require separate explicit Owner approval and verified rollback.
+
+## Exact trusted inventory / version 3
+
+An arbitrary set of 30 valid-looking reports is not the authoritative fleet. The caller must supply the separately verified list of 30 `owner/repo` names as `expectedRepoNames` to obtain a full-fleet policy PASS. The result records `membershipVerified` and a deterministic `inventorySha256` fingerprint. That fingerprint is **not a digital signature**, and this library cannot prove who collected or signed the inventory. Keep the owner-maintained private repository list and any signed manifest outside the public code.
+
+The v3 change does not expand audit coverage, run Strix, verify third-party alerts, or imply enterprise production readiness. Maintain owner-held manifests, real identity/approval controls, and private Audit Ledger.

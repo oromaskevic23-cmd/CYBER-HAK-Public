@@ -122,7 +122,12 @@ export function verifyRepoEvidence(report) {
   return true;
 }
 
-export function auditFleet(reports,{expectedRepos=30}={}) {
+/**
+ * Require an independently supplied exact-name inventory before full fleet PASS.
+ * Caller-supplied names must come from a trusted owner-maintained inventory;
+ * this module cannot attest their origin or sign them.
+ */
+export function auditFleet(reports,{expectedRepos=30,expectedRepoNames=null}={}) {
   if(!Array.isArray(reports)||!Number.isSafeInteger(expectedRepos)||
      expectedRepos<1||expectedRepos>100000||reports.length>expectedRepos)
     throw Error('FLEET_SCHEMA');
@@ -130,8 +135,21 @@ export function auditFleet(reports,{expectedRepos=30}={}) {
   if(names.some(x=>typeof x!=='string')||new Set(names).size!==names.length)
     throw Error('DUPLICATE_FLEET_REPOS');
   for(const r of reports)verifyRepoEvidence(r);
-  const report={schema:'cyber-hak.fleet-attestation.v2',expectedRepos,observedRepos:reports.length,
-    complete:reports.length===expectedRepos&&reports.every(r=>
+  let membershipVerified=false,inventorySha256=null;
+  if(expectedRepoNames!==null){
+    if(!Array.isArray(expectedRepoNames)||expectedRepoNames.length!==expectedRepos||
+       expectedRepoNames.some(n=>typeof n!=='string'||
+         !/^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/.test(n))||
+       new Set(expectedRepoNames).size!==expectedRepos)
+      throw Error('TRUSTED_INVENTORY_SCHEMA_DENIED');
+    const expected=new Set(expectedRepoNames);
+    membershipVerified=names.length===expectedRepos&&names.every(n=>expected.has(n));
+    inventorySha256=sha(JSON.stringify([...expected].sort()));
+  }
+  const report={schema:'cyber-hak.fleet-attestation.v3',
+    expectedRepos,observedRepos:reports.length,
+    membershipVerified,inventorySha256,
+    complete:membershipVerified&&reports.every(r=>
       r.inventoryComplete&&r.alertCoverage==='VERIFIED'&&
       r.checkedWorkflows===r.workflowCount&&r.summary.incomplete===0&&
       r.decision==='POLICY_GATE_PASS'),
