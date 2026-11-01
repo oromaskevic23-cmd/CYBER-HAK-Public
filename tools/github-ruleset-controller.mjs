@@ -8,7 +8,7 @@
 import {resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {buildMainRuleset,assertRulesetEnforced,REQUIRED_GATE,
-  RULESET_NAME,validateTarget} from '../security/rulesets/main-ruleset.mjs';
+  RULESET_NAME,validateTarget,GITHUB_ACTIONS_APP_ID} from '../security/rulesets/main-ruleset.mjs';
 
 export function parseOptions(args){
   if(!Array.isArray(args)||args.length!==3||args[1]!=='--repo'||
@@ -17,13 +17,19 @@ export function parseOptions(args){
   return {mode:args[0],repo:validateTarget(args[2])};
 }
 
-export function assertGateReady(checkRuns,headSha){
+export function assertGateReady(checkRuns,headSha,repo){
+  validateTarget(repo);
   if(!Array.isArray(checkRuns)||checkRuns.length===0||checkRuns.length>100||
      typeof headSha!=='string'||!/^[0-9a-f]{40}$/i.test(headSha))
     throw Error('REQUIRED_CHECK_EVIDENCE_UNAVAILABLE');
   const gate=checkRuns.find(x=>x.name===REQUIRED_GATE &&
     x.head_sha===headSha && x.status==='completed' &&
-    x.conclusion==='success');
+    x.conclusion==='success' &&
+    x.app?.id===GITHUB_ACTIONS_APP_ID &&
+    x.app?.slug==='github-actions' &&
+    typeof x.details_url==='string' &&
+    x.details_url.startsWith('https://github.com/'+repo+'/actions/runs/') &&
+    /\/job\/[0-9]+(?:$|[?#])/.test(x.details_url));
   if(!gate)throw Error('REQUIRED_GATE_NOT_GREEN_ON_MAIN');
   return true;
 }
@@ -82,14 +88,22 @@ export async function applyOneRuleset({repo,token,fetchImpl=fetch}){
   const checks=await req('/commits/'+headSha+'/check-runs?per_page=100');
   if(!checks||!Array.isArray(checks.check_runs)||
     checks.total_count>100)throw Error('CHECK_RUN_COVERAGE_INCOMPLETE');
-  assertGateReady(checks.check_runs,headSha);
+  assertGateReady(checks.check_runs,headSha,repo);
+  // Refuse to install a stale-policy check if main changed since CI evidence.
+  const refreshed=await req('/branches/main');
+  if(refreshed?.commit?.sha!==headSha)
+    throw Error('MAIN_ADVANCED_DURING_ENROLLMENT');
   const created=await req('/rulesets',{method:'POST',body:policy});
   if(!Number.isSafeInteger(created.id)||created.id<1)
     throw Error('RULESET_CREATED_BUT_ID_UNAVAILABLE_MANUAL_REVIEW');
   // Never print PASS based solely on an HTTP 201; read authoritative state.
   const installed=await req('/rulesets/'+created.id);
   assertRulesetEnforced(installed,policy);
-  return {status:'ACTIVE_VERIFIED',repo,rulesetId:created.id,
+  // A post-write branch change invalidates the 'same green HEAD' attestation.
+  const finalBranch=await req('/branches/main');
+  if(finalBranch?.commit?.sha!==headSha)
+    throw Error('RULESET_CREATED_MAIN_MOVED_NEEDS_REVIEW');
+  return {status:'ACTIVE_CONFIGURATION_VERIFIED_NEGATIVE_PR_PENDING',repo,rulesetId:created.id,
     branch:'main',requiredCheck:REQUIRED_GATE,checkSha:headSha,
     bypassCount:0};
 }
