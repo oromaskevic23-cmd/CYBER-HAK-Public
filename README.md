@@ -10,6 +10,13 @@ Defensive security and digital immune-system architecture for IMPERIAL Core.
 
 [Enterprise Security Checkpoint — 1 November 2026](docs/ENTERPRISE_SECURITY_CHECKPOINT_20261101.md) — confirmed regression evidence, limitations and next controlled security gates.
 
+
+## Executable repository security audit — CI gate (2 November 2026)
+
+The original [CYBER HAK source-audit Skill](security/skills/source-audit/SKILL.md) is runnable Node.js code with ten adversarial test scenarios, structured SHA-256-bound JSON results, a real full tracked-source scan and automatic fail-closed checks of newly introduced source and GitHub Actions policy risks. Run `npm run security:scan` for a read-only report or `npm run security:test` for regression fixtures. [CI workflow](.github/workflows/executable-source-security-gate.yml) executes this mechanism on pull requests and main updates; successful CI proves those checks ran for that commit, not that all security vulnerabilities were ruled out or GitHub branch protection is enforced.
+
+**State boundary:** This is actual bounded static inspection, not a real Strix dynamic pentest, cloud security service, continuous NCA fleet or external independent QA. The Cloudflare third-party skill remains separate and has not been copied.
+
 ## Enterprise Security — Strix Integration & Fleet Evidence Gate
 
 **Current implementation (2026-11-01):** Strix local-only, owner-gated runner and scoped
@@ -49,7 +56,7 @@ Alexander Romaskevich · RomaskevicH — founder-declared Architect, Owner and C
 Founder • Owner • CEO of IMPERIAL Core  
 Architect / Final Architectural Decision Authority
 
-**HANTER — AI Command Center / Chief Systems** operates under the founder's architectural decisions. This role does not imply a single unrestricted global orchestrator.
+**HANTER — AI Command Center** operates under the founder's architectural decisions. This role does not imply a single unrestricted global orchestrator.
 
 ## Public technical evidence
 
