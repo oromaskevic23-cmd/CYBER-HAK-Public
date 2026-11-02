@@ -1,0 +1,70 @@
+name: CYBER HAK - Executable Source Security Gate
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cyber-hak-source-gate-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  audit-source:
+    name: Actual tracked-source audit + changed-file blocking gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    env:
+      BASE_COMMIT: ${{ github.event.pull_request.base.sha || github.event.before }}
+      EVENT_KIND: ${{ github.event_name }}
+    steps:
+      - name: Checkout with history, never retain credentials
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Prepare Node 22
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: '22'
+      - name: Audit module syntax + adversarial regression tests
+        run: |
+          node --check tools/source-security-gate.mjs
+          node --test test/source-security-gate.test.mjs
+      - name: Execute real read-only static source scan against this repository
+        shell: bash
+        run: |
+          set -euo pipefail
+          node tools/source-security-gate.mjs --root . --report "$RUNNER_TEMP/full-scan-report.json"
+      - name: Reject introduced security policy violations in PR or push
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ "$EVENT_KIND" == "pull_request" || "$EVENT_KIND" == "push" ]]; then
+            if [[ ! "$BASE_COMMIT" =~ ^[0-9a-f]{40}$ || "$BASE_COMMIT" =~ ^0{40}$ ]]; then
+              echo "CHAK_INCOMPLETE_BASE_COMMIT" >&2
+              exit 2
+            fi
+            node tools/source-security-gate.mjs --root . --base "$BASE_COMMIT" --enforce \
+              --report "$RUNNER_TEMP/diff-scan-report.json"
+          else
+            echo "MANUAL_FULL_SCAN_REPORT_ONLY: unreviewed baseline cannot be called clean"
+          fi
+      - name: Confirm audit result does not authorize operations
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --input-type=module -e '
+            import fs from "node:fs";
+            const p=process.env.RUNNER_TEMP+"/full-scan-report.json";
+            const r=JSON.parse(fs.readFileSync(p,"utf8"));
+            if(r.network_used!==false||r.production_authorized!==false||
+              r.coverage_complete!==false||r.no_vulnerabilities_claimed!==false)
+              process.exit(4);
+            console.log("CYBER_HAK_STATIC_AUDIT_EXECUTED_NOT_PENTEST",
+              r.scanned_files,"FILES","REPORT_SHA256",r.report_sha256);
+          '
