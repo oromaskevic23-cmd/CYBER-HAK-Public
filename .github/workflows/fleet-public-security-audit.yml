@@ -1,0 +1,139 @@
+name: CYBER HAK - Fleet-wide public source audit (23 repos)
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/fleet-public-security-audit.yml'
+      - 'docs/FLEET_PUBLIC_SECURITY_AUDIT.md'
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/fleet-public-security-audit.yml'
+      - 'docs/FLEET_PUBLIC_SECURITY_AUDIT.md'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cyber-hak-fleet-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  public-fleet-source-review:
+    name: "Real audit: ${{ matrix.repository }}"
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      max-parallel: 5
+      matrix:
+        repository:
+          - "Codex-Enterprise-IMPERIAL-Skills"
+          - "Capital-Core-Public"
+          - "HANTER-Public"
+          - "Nano-Core-Agents-Public"
+          - "Legion-Public"
+          - "CRYPTO-IMPERIAL-Ecosystem-Public"
+          - "ORION-Public"
+          - "IMPERIAL-AGI"
+          - "CYBER-HAK-Public"
+          - "VELION-LLM-Public"
+          - "AGY"
+          - "CONSTRUCTOR-AI"
+          - "SHPAIZMAN-ORCHESTRATOR"
+          - "IMPERIAL-Core-US-HoldCo-Founder-Control-Blueprint"
+          - "oromaskevic23-cmd"
+          - "Jem"
+          - "IMPERIAL-Venture-Factory"
+          - "IMPERIUM"
+          - "N.D.B"
+          - "Lisa-"
+          - "IMPERIAL-Plugins"
+          - "IMPERIAL-n8n-Automation"
+          - "IMPERIAL-Skill"
+    steps:
+      - name: Checkout pinned source-only CYBER HAK auditor
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          repository: oromaskevic23-cmd/CYBER-HAK-Public
+          ref: c76109ed6404bcf6145e7d407b50990be403e85d
+          path: pinned-scanner
+          persist-credentials: false
+      - name: Confirm immutable scanner revision
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git -C pinned-scanner rev-parse HEAD)" = "c76109ed6404bcf6145e7d407b50990be403e85d"
+      - name: Checkout one explicitly listed PUBLIC owner repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          repository: oromaskevic23-cmd/${{ matrix.repository }}
+          ref: main
+          path: audited-source
+          persist-credentials: false
+      - name: Prepare Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: '22'
+      - name: Actually scan tracked source without executing target code
+        shell: bash
+        run: |
+          set -euo pipefail
+          node pinned-scanner/tools/source-security-gate.mjs \
+            --root audited-source \
+            --report "$RUNNER_TEMP/public-source-security.json"
+      - name: Validate result schema and publish sanitized evidence summary
+        shell: bash
+        env:
+          TARGET_REPO: ${{ matrix.repository }}
+        run: |
+          set -euo pipefail
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          import crypto from 'node:crypto';
+          const p=process.env.RUNNER_TEMP+'/public-source-security.json';
+          const r=JSON.parse(fs.readFileSync(p,'utf8'));
+          if(r.schema!=='imperial.cyber-hak.source-security-gate.v1'||
+              r.scope!=='TRACKED_SOURCE_FULL'||
+              r.network_used!==false||r.production_authorized!==false||
+              r.coverage_complete!==false||r.no_vulnerabilities_claimed!==false||
+              !/^[0-9a-f]{40}$/.test(r.source_commit)||
+              !Number.isSafeInteger(r.scanned_files)||
+              !Number.isSafeInteger(r.policy_signals)||
+              !Array.isArray(r.findings)||
+              r.findings.length!==r.policy_signals) {
+            console.error('FLEET_AUDIT_UNVERIFIED');
+            process.exit(2);
+          }
+          const summary = {
+            repo: process.env.TARGET_REPO,
+            source_commit: r.source_commit,
+            scanned_files: r.scanned_files,
+            scanned_bytes: r.scanned_bytes,
+            skipped_files: r.skipped_files,
+            policy_signals: r.policy_signals,
+            rule_counts: Object.fromEntries([...new Set(r.findings.map(x=>x.rule_id))].sort().map(
+              id=>[id,r.findings.filter(x=>x.rule_id===id).length])),
+            report_sha256: r.report_sha256,
+            scope: 'LIMITED_STATIC_RULESET',
+            independent_qa_verified: false,
+            comprehensive_security_verified: false,
+            production_authorized: false
+          };
+          console.log('IMPERIAL_FLEET_AUDIT',JSON.stringify(summary));
+          fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY,
+            '### '+process.env.TARGET_REPO+'\n'+
+            '- Scanned tracked source files: **'+r.scanned_files+'**\n'+
+            '- Static policy signals needing triage: **'+r.policy_signals+'**\n'+
+            '- Source SHA: '+r.source_commit+'\n'+
+            '- Report SHA-256: '+r.report_sha256+'\n'+
+            '- Coverage: **limited static rules only; not independent vulnerability certification**\n');
+          NODE
+      - name: Attach reproducible public-repository report
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: fleet-public-${{ matrix.repository }}
+          path: ${{ runner.temp }}/public-source-security.json
+          retention-days: 30
+          if-no-files-found: error
