@@ -1,0 +1,31 @@
+name: CYBER HAK | IMPERIAL EYE Real Chromium Interface Evidence
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/imperial-eye-browser-once.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: imperial-eye-browser-smoke
+  cancel-in-progress: false
+
+jobs:
+  chromium-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 16
+    steps:
+      - name: Checkout pinned source
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - name: Install official open-source Playwright
+        run: |
+          python3 -m pip install 'playwright==1.64.1'
+          python3 -m playwright install --with-deps chromium
+      - name: Exercise actual local UI, source filter and denied Owner login
+        run: python3 security/imperial_eye/tests/browser_smoke.py
