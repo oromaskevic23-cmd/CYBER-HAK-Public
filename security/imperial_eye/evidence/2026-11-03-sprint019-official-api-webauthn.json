@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "product": "IMPERIAL EYE",
+  "sprint": "019",
+  "observed_date": "2026-11-03",
+  "release_type": "FREE_ONLY_LOCAL_PROTOTYPE_WITH_ONE_OFF_REAL_OPEN_DATA_FETCH",
+  "source_evidence": {
+    "provider": "Fintraffic / Digitraffic",
+    "official_api": "https://tie.digitraffic.fi/api/weathercam/v1/stations",
+    "genuine_api_run": "https://github.com/oromaskevic23-cmd/CYBER-HAK-Public/actions/runs/41596732548",
+    "response_sha256": "ef2567809b230f5d80f81f60757b76368b14dc00a056c51d871880d2744caa47",
+    "observed_utc": "2026-11-03T07:30:20Z",
+    "valid_stations_in_api_response": 816,
+    "stored_public_sample": 12,
+    "dataset_path": "security/imperial_eye/data/digitraffic_sample.json",
+    "attribution": "Source: Fintraffic / Digitraffic (CC BY 4.0)",
+    "individual_image_freshness_verified": false,
+    "real_live_video_frames_verified": 0
+  },
+  "browser_evidence": {
+    "test_run": "https://github.com/oromaskevic23-cmd/CYBER-HAK-Public/actions/runs/41597277505",
+    "result": "PASS",
+    "rendered_camera_cards": 12,
+    "publisher_portals": 2,
+    "external_network_requests_during_test": 0,
+    "screenshot_sha256": "66ef2dd35951eed4287e34b9f3a9a7486ec0666e7607da7d335dd75b83ef0fd7",
+    "owner_without_backend": "DENIED"
+  },
+  "owner_gate_evidence": {
+    "ci_run": "https://github.com/oromaskevic23-cmd/CYBER-HAK-Public/actions/runs/41597973689",
+    "tests_passed_per_python_version": 48,
+    "python_versions": [
+      "3.11",
+      "3.12"
+    ],
+    "real_webauthn_es256_algorithm_tested": true,
+    "test_keys_are_synthetic": true,
+    "enrolled_real_owner_passkey": false,
+    "actual_server_endpoints_deployed": false,
+    "face_recognition_or_face_templates": false,
+    "privileged_session_issued": false
+  },
+  "limitations": [
+    "816 is source station metadata count at one observed instant, not count of live verified streams",
+    "12 selected samples, not all world cameras, and the static snapshot expires in UI after 24 hours",
+    "Published image URLs are links only, no copying/rehosting, streaming, surveillance or biometric processing",
+    "Device user verification may be Face ID, fingerprint or device PIN; no proof of Face ID specifically",
+    "No actual owner trust bootstrap, remotely deployed WebAuthn server, Owner Authority Guard production integration or remote kill switch",
+    "Production access and commercial/surveillance scopes remain forbidden"
+  ]
+}
