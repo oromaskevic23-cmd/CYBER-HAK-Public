@@ -56,7 +56,7 @@ def main():
                         page.fill("#source-filter","")
                         assert page.locator(".source-card").count()==2
                         page.locator("#owner-check").click()
-                        assert "Access denied" in page.locator("#passkey-status").inner_text()
+                        page.wait_for_function("document.querySelector('#passkey-status')?.textContent.includes('Access denied')")
                         page.locator("#owner-auth").click()
                         page.wait_for_function("document.querySelector('#passkey-status')?.textContent.includes('Access denied')")
                         assert page.locator(".source-card a").count()==2
