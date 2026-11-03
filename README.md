@@ -11,6 +11,14 @@ Defensive security and digital immune-system architecture for IMPERIAL Core.
 [Enterprise Security Checkpoint — 1 November 2026](docs/ENTERPRISE_SECURITY_CHECKPOINT_20261101.md) — confirmed regression evidence, limitations and next controlled security gates.
 
 
+## IMPERIAL EYE — verified-source world atlas + owner passkey pilot
+
+[Source, browser UI, privacy design and local run instructions](security/imperial_eye/README.md) · [original interactive atlas](security/imperial_eye/web/index.html) · [publisher registry](security/imperial_eye/data/sources.json) · [security CI](.github/workflows/imperial-eye.yml).
+
+**Implemented:** an original zero-cost, locally servable world-source navigator; exactly two documented official public agency camera portals (New York State 511NY and Finland Fintraffic), per-source links and approximate region pins; fail-closed source validation and adversarial unit tests. The owner login UI uses a **WebAuthn passkey challenge contract** and does not collect images or biometric templates. Supported devices may use Face ID locally, but **actual server-side passkey verification and enrollment are not deployed**.
+
+**No misleading claims:** the site does not provide video streams, every camera in the world, private-camera access, biometric identification of other people, live agent deployment or a cloud owner-auth backend. CODEOWNERS routes critical files to the Founder but requires an enforced branch rule to have blocking effect. External projects were researched, not copied.
+
 ## IMPERIAL Owner Authority Guard — signed root protection (3 November 2026)
 
 [Source and threat model](security/owner_authority_guard/README.md) · [Ed25519 verifier](security/owner_authority_guard/guard.py) · [external key trust check](security/owner_authority_guard/verify_cli.py) · [GitHub Actions proof](https://github.com/oromaskevic23-cmd/CYBER-HAK-Public/actions/runs/41590533895).
