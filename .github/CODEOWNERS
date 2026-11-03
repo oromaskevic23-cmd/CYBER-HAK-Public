@@ -11,3 +11,6 @@
 /PROVENANCE* @oromaskevic23-cmd
 /.github/CODEOWNERS @oromaskevic23-cmd
 /.github/workflows/enterprise-founder-authorship.yml @oromaskevic23-cmd
+
+/security/owner_authority_guard/ @oromaskevic23-cmd
+/.github/workflows/owner-authority-guard.yml @oromaskevic23-cmd
