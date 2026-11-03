@@ -46,6 +46,26 @@ The local UI uses static curated JSON and works only over an HTTP static server 
 
 **No real camera feeds, biometric templates or production Owner sessions were tested or implemented.** Official portal entries are not individual camera locations. These tests demonstrate the source navigator and a fail-closed auth UI, not production surveillance or WebAuthn assertion verification.
 
+## Sprint 019 — verified official camera stations and protected passkey verifier (3 November 2026)
+
+**Official public station API: real result, not a simulated response.** [Fintraffic read CI](https://github.com/oromaskevic23-cmd/CYBER-HAK-Public/actions/runs/41596732548) read the fixed HTTPS endpoint `https://tie.digitraffic.fi/api/weathercam/v1/stations` without authentication. It received and validated **816 public station metadata records** in that response, then saved an explicitly **limited sample of 12 stations** with camera station IDs, publisher coordinates, source links, condition collection metadata and `fetched_at=2026-11-03T07:30:20Z`. Each available image URL points to the official `weathercam.digitraffic.fi` host. No photos or video have been copied or automatically downloaded.
+
+- [Open-source metadata adapter](digitraffic.py) — only one hardcoded TLS destination, gzip bounds, `Digitraffic-User` non-PII header, no redirects, no credentials; fails closed on schema/host errors.
+- [12 authentic dated station records](data/digitraffic_sample.json) — Fintraffic / Digitraffic attribution under CC BY 4.0, exact source SHA-256, actual source observation time, and distinction between **metadata collection** and **image liveness**.
+- [Full-screen atlas with station metadata cards](web/index.html) — map dots from published coordinates, labels, links to official still images shown only for snapshots less than 24 hours old, and publisher licensing.
+- [Real Chromium screenshot/UI proof](https://github.com/oromaskevic23-cmd/CYBER-HAK-Public/actions/runs/41597277505) — 12 station cards, 2 publisher portals, filter active, zero external requests or auto-streamed images, Owner login denied in absence of trusted server.
+- [Structured evidence, hash and limits](evidence/2026-11-03-sprint019-official-api-webauthn.json).
+
+**Important freshness limit:** a checked-in static snapshot does NOT update automatically. After 24 hours the UI displays STALE and withholds direct image links. A fresh official API read, independent validation and a new reviewed snapshot are required before those links reappear. The **816** count is the number of unique valid station metadata records observed in this particular source response; it is NOT 816 independently verified live feeds and not access to all cameras in the world.
+
+**WebAuthn server verification core (LOCAL LAB):** [owner_webauthn.py](owner_webauthn.py) now uses the pinned open-source **py_webauthn 3.0.1** library to validate a **real** cryptographic ES256 device assertion against a separately provided trust record. Challenges are random, one-use, limited to 90 seconds and stored persistently in SQLite. Exact RP hostname/origin, required user verification (UV), credential ID and signature plus sign counters are checked; invalid signatures also burn challenges. The module returns `owner_authority_session:false` and `production_authorized:false` EVEN ON SUCCESS because an actual Owner identity has not enrolled its credential. No plaintext biometric sample or Face ID template is handled.
+
+- [WebAuthn synthetic cryptographic tests](tests/test_owner_webauthn.py) (not a mocked-only verifier).
+- [48/48 complete security tests](https://github.com/oromaskevic23-cmd/CYBER-HAK-Public/actions/runs/41597973689) on Python 3.11 and 3.12. Includes tampered signatures, changed origin, wrong key, missing UV, stale challenge, counter replay, no enrollment and false public camera data.
+- **Not deployed:** HTTP endpoints `/api/imperial-eye/owner/challenge` and `/api/imperial-eye/owner/assertion` remain unimplemented. This is the **verification engine** to be integrated behind a protected TLS origin. No live Face ID owner session is claimed.
+
+**Technical scope:** work stays within CYBER HAK and does not bypass HANTER's Federated Multi-Orchestrator Architecture, NCA AI Passport, Guardian Core, Approval Gateway, Audit Ledger, Zero Trust or CRYPTO IMPERIAL Ecosystem Boundary.
+
 ## Face scanner / Owner login: use device WebAuthn, NOT central face recognition
 
 **Owner Device Gate design:** user-initiated WebAuthn / passkey challenge with `userVerification: required` and relying-party (RP) origin binding. On an eligible Apple device, the platform can use Face ID; other authenticators may use Touch ID, fingerprint or device PIN. **The relying-party server cannot require Face ID specifically just by setting userVerification=required**, and must never claim a face scan occurred without device-specific proof. FIDO documents that biometric matching is local to the authenticator and the biometric template is not disclosed to the relying party.
