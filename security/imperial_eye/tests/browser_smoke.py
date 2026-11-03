@@ -46,7 +46,7 @@ def main():
                     page=context.new_page()
                     try:
                         page.goto(f"http://127.0.0.1:{port}/web/",wait_until="networkidle")
-                        page.locator("#count").get_by_text("2",exact=True).wait_for()
+                        page.wait_for_function("document.querySelector('#count')?.textContent === '2'")
                         assert page.locator(".source-card").count()==2
                         assert page.locator("video,iframe,img").count()==0
                         page.fill("#source-filter","Fintraffic")
@@ -58,7 +58,7 @@ def main():
                         page.locator("#owner-check").click()
                         assert "Access denied" in page.locator("#passkey-status").inner_text()
                         page.locator("#owner-auth").click()
-                        page.locator("#passkey-status").get_by_text("Access denied",exact=False).wait_for()
+                        page.wait_for_function("document.querySelector('#passkey-status')?.textContent.includes('Access denied')")
                         assert page.locator(".source-card a").count()==2
                         assert len(requests)==0
                         screenshot=page.screenshot(full_page=True)
