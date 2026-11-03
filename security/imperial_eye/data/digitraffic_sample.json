@@ -1,0 +1,152 @@
+{
+  "api": "https://tie.digitraffic.fi/api/weathercam/v1/stations",
+  "attribution": "Source: Fintraffic / Digitraffic (CC BY 4.0)",
+  "dataset": "digitraffic_weathercam_official_metadata_sample",
+  "facial_recognition": false,
+  "fetched_at": "2026-11-03T07:30:20Z",
+  "individual_image_freshness_verified": false,
+  "license": "CC BY 4.0",
+  "owner_biometrics_collected": false,
+  "publisher": "Fintraffic / Digitraffic",
+  "realtime_video": false,
+  "sample_is_not_complete_catalog": true,
+  "sample_size": 12,
+  "schema_version": 1,
+  "source_documentation": "https://www.digitraffic.fi/en/road-traffic/",
+  "source_sha256": "ef2567809b230f5d80f81f60757b76368b14dc00a056c51d871880d2744caa47",
+  "station_samples": [
+    {
+      "collection_status": "GATHERING",
+      "image_is_live_verified": false,
+      "label": "kt51_Inkoo",
+      "lat": 60.05374,
+      "lon": 23.99616,
+      "published_image_url": "https://weathercam.digitraffic.fi/C0150301.jpg",
+      "record_kind": "official_public_weathercam_metadata",
+      "state": "UNKNOWN",
+      "station_id": "C01503"
+    },
+    {
+      "collection_status": "GATHERING",
+      "image_is_live_verified": false,
+      "label": "vt2_Karkkila_Korpi",
+      "lat": 60.53673,
+      "lon": 24.2356,
+      "published_image_url": "https://weathercam.digitraffic.fi/C0150401.jpg",
+      "record_kind": "official_public_weathercam_metadata",
+      "state": "UNKNOWN",
+      "station_id": "C01504"
+    },
+    {
+      "collection_status": "GATHERING",
+      "image_is_live_verified": false,
+      "label": "kt52_Raasepori_Tenhola",
+      "lat": 60.0618,
+      "lon": 23.30326,
+      "published_image_url": "https://weathercam.digitraffic.fi/C0150501.jpg",
+      "record_kind": "official_public_weathercam_metadata",
+      "state": "UNKNOWN",
+      "station_id": "C01505"
+    },
+    {
+      "collection_status": "GATHERING",
+      "image_is_live_verified": false,
+      "label": "vt25_Myllylampi",
+      "lat": 60.31155,
+      "lon": 24.24101,
+      "published_image_url": "https://weathercam.digitraffic.fi/C0150601.jpg",
+      "record_kind": "official_public_weathercam_metadata",
+      "state": "UNKNOWN",
+      "station_id": "C01506"
+    },
+    {
+      "collection_status": "GATHERING",
+      "image_is_live_verified": false,
+      "label": "vt25_Hanko",
+      "lat": 59.85645,
+      "lon": 23.02145,
+      "published_image_url": "https://weathercam.digitraffic.fi/C0150701.jpg",
+      "record_kind": "official_public_weathercam_metadata",
+      "state": "UNKNOWN",
+      "station_id": "C01507"
+    },
+    {
+      "collection_status": "GATHERING",
+      "image_is_live_verified": false,
+      "label": "vt4_Mäntsälä",
+      "lat": 60.6716,
+      "lon": 25.35099,
+      "published_image_url": "https://weathercam.digitraffic.fi/C0150801.jpg",
+      "record_kind": "official_public_weathercam_metadata",
+      "state": "UNKNOWN",
+      "station_id": "C01508"
+    },
+    {
+      "collection_status": "GATHERING",
+      "image_is_live_verified": false,
+      "label": "vt3_Hyvinkää_Noppo",
+      "lat": 60.56614,
+      "lon": 24.81879,
+      "published_image_url": "https://weathercam.digitraffic.fi/C0150901.jpg",
+      "record_kind": "official_public_weathercam_metadata",
+      "state": "UNKNOWN",
+      "station_id": "C01509"
+    },
+    {
+      "collection_status": "GATHERING",
+      "image_is_live_verified": false,
+      "label": "st110_Lohja_Oinola",
+      "lat": 60.38584,
+      "lon": 23.90488,
+      "published_image_url": "https://weathercam.digitraffic.fi/C0151001.jpg",
+      "record_kind": "official_public_weathercam_metadata",
+      "state": "REPAIR_MAINTENANCE_DONE",
+      "station_id": "C01510"
+    },
+    {
+      "collection_status": "GATHERING",
+      "image_is_live_verified": false,
+      "label": "st101_Helsinki_Pakila",
+      "lat": 60.24445,
+      "lon": 24.94843,
+      "published_image_url": "https://weathercam.digitraffic.fi/C0151301.jpg",
+      "record_kind": "official_public_weathercam_metadata",
+      "state": "UNKNOWN",
+      "station_id": "C01513"
+    },
+    {
+      "collection_status": "GATHERING",
+      "image_is_live_verified": false,
+      "label": "st101_Turvesuontie",
+      "lat": 60.19972,
+      "lon": 24.8093,
+      "published_image_url": "https://weathercam.digitraffic.fi/C0152101.jpg",
+      "record_kind": "official_public_weathercam_metadata",
+      "state": "UNKNOWN",
+      "station_id": "C01521"
+    },
+    {
+      "collection_status": "GATHERING",
+      "image_is_live_verified": false,
+      "label": "st101_Kalevalantie",
+      "lat": 60.18689,
+      "lon": 24.80866,
+      "published_image_url": "https://weathercam.digitraffic.fi/C0152201.jpg",
+      "record_kind": "official_public_weathercam_metadata",
+      "state": "UNKNOWN",
+      "station_id": "C01522"
+    },
+    {
+      "collection_status": "GATHERING",
+      "image_is_live_verified": false,
+      "label": "vt4_Helsinki_Tattarisuo",
+      "lat": 60.24725,
+      "lon": 25.06072,
+      "published_image_url": "https://weathercam.digitraffic.fi/C0152301.jpg",
+      "record_kind": "official_public_weathercam_metadata",
+      "state": "UNKNOWN",
+      "station_id": "C01523"
+    }
+  ],
+  "total_valid_stations_in_response": 816
+}
