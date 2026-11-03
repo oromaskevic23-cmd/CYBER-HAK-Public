@@ -11,6 +11,14 @@ Defensive security and digital immune-system architecture for IMPERIAL Core.
 [Enterprise Security Checkpoint — 1 November 2026](docs/ENTERPRISE_SECURITY_CHECKPOINT_20261101.md) — confirmed regression evidence, limitations and next controlled security gates.
 
 
+## IMPERIAL Owner Authority Guard — signed root protection (3 November 2026)
+
+[Source and threat model](security/owner_authority_guard/README.md) · [Ed25519 verifier](security/owner_authority_guard/guard.py) · [external key trust check](security/owner_authority_guard/verify_cli.py) · [GitHub Actions proof](https://github.com/oromaskevic23-cmd/CYBER-HAK-Public/actions/runs/41590533895).
+
+**Verified:** 22/22 tests passed on Python 3.11 and Python 3.12 using real Ed25519 verification and ephemeral laboratory keys. The guard rejects agent impersonation of Founder, Owner, CEO and Chief Systems Architect, forbids technical transfer of root authority, checks external public-key trust, replay, expiry, canonical identity and signed scopes.
+
+**Not activated:** the real Owner private signing key has **not** been enrolled; GitHub Ruleset enforcement, external independent protected policy service and production HANTER/Guardian/Approval/NCA call-site integration remain unverified. CODEOWNERS does not independently enforce merge restrictions. The guard cannot prevent edits by a compromised repository administrator unless layered controls are active. No paid services were enabled. The private IMPERIAL Core governance record was updated without publishing keys or personal financial data.
+
 ## Executable repository security audit — CI gate (2 November 2026)
 
 The original [CYBER HAK source-audit Skill](security/skills/source-audit/SKILL.md) is runnable Node.js code with ten adversarial test scenarios, structured SHA-256-bound JSON results, a real full tracked-source scan and automatic fail-closed checks of newly introduced source and GitHub Actions policy risks. Run `npm run security:scan` for a read-only report or `npm run security:test` for regression fixtures. [CI workflow](.github/workflows/executable-source-security-gate.yml) executes this mechanism on pull requests and main updates; successful CI proves those checks ran for that commit, not that all security vulnerabilities were ruled out or GitHub branch protection is enforced.
