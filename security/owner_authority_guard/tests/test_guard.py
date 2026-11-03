@@ -10,6 +10,7 @@ import unittest
 
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
+from security.owner_authority_guard.verify_cli import verify_from_external_env
 from security.owner_authority_guard.guard import (
     AuthorityDenied, LocalAuthorityLedger, OWNER_NAME, OWNER_GITHUB,
     OWNER_ROLES, check_no_agent_takeover, signed_bytes, verify_approval
@@ -166,6 +167,32 @@ class OwnerAuthorityGuardTests(unittest.TestCase):
         env["signature"]=other.sign(signed_bytes(env["payload"],env["key_id"])).hex()
         with self.assertRaisesRegex(AuthorityDenied,"SIGNATURE_INVALID"):
             self.verify(env)
+
+    def test_external_trust_missing_is_denied(self):
+        with self.assertRaisesRegex(AuthorityDenied, "EXTERNAL_OWNER_TRUST_NOT_ENROLLED"):
+            verify_from_external_env(self.signed(), {}, now=120)
+
+    def test_external_public_key_pin_accepts_cryptography_only(self):
+        env = {
+            "IMPERIAL_OWNER_TRUST_KEY_ID": "DEMO-OWNER-KEY",
+            "IMPERIAL_OWNER_TRUSTED_PUBLIC_KEY_HEX": self.public.hex(),
+            "IMPERIAL_OWNER_MIN_POLICY_EPOCH": "7"
+        }
+        verified = verify_from_external_env(self.signed(), env, now=120)
+        self.assertEqual(verified["action"], "APPROVE_ARCHITECTURE_CHANGE")
+
+    def test_external_trust_pin_rejects_foreign_key(self):
+        foreign = Ed25519PrivateKey.generate().public_key().public_bytes(
+            serialization.Encoding.Raw, serialization.PublicFormat.Raw
+        )
+        env = {
+            "IMPERIAL_OWNER_TRUST_KEY_ID": "DEMO-OWNER-KEY",
+            "IMPERIAL_OWNER_TRUSTED_PUBLIC_KEY_HEX": foreign.hex(),
+            "IMPERIAL_OWNER_MIN_POLICY_EPOCH": "7"
+        }
+        with self.assertRaisesRegex(AuthorityDenied, "SIGNATURE_INVALID"):
+            verify_from_external_env(self.signed(), env, now=120)
+
 
 
 if __name__=="__main__":
