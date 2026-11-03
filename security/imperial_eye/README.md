@@ -36,6 +36,16 @@ The local UI uses static curated JSON and works only over an HTTP static server 
 
 `tests/test_catalog.py` + `tests/test_web_ui.py` and [CI workflow](../../.github/workflows/imperial-eye.yml) validate security boundaries, reject private cameras, and syntax-check the WebAuthn client.
 
+## Verified executable evidence — 3 November 2026
+
+- [Source catalog and no-biometric policy gate](https://github.com/oromaskevic23-cmd/CYBER-HAK-Public/actions/runs/41595285470): **18/18 PASS per Python version (3.11 and 3.12)**.
+- [Real Chromium UI smoke](https://github.com/oromaskevic23-cmd/CYBER-HAK-Public/actions/runs/41595313923): **PASS**; two public source cards, functional filter, no video/image feeds opened, no requests to external domains during the test, and Owner login refused without a trusted server.
+- [Evidence JSON with source commit, test statuses and screenshot SHA-256](evidence/2026-11-03-local-browser-pass.json).
+- Real Chromium engine reported: **156.0.8078.4**; screenshot SHA-256: `1b8831ab0c3b0aa9e32887eb1fb5df89095c32790a65c273aa29d84f4e51917d`.
+- The browser workflow was switched to manual dispatch after the verified run to preserve FREE_ONLY constraints. The lightweight policy workflow remains available on changes.
+
+**No real camera feeds, biometric templates or production Owner sessions were tested or implemented.** Official portal entries are not individual camera locations. These tests demonstrate the source navigator and a fail-closed auth UI, not production surveillance or WebAuthn assertion verification.
+
 ## Face scanner / Owner login: use device WebAuthn, NOT central face recognition
 
 **Owner Device Gate design:** user-initiated WebAuthn / passkey challenge with `userVerification: required` and relying-party (RP) origin binding. On an eligible Apple device, the platform can use Face ID; other authenticators may use Touch ID, fingerprint or device PIN. **The relying-party server cannot require Face ID specifically just by setting userVerification=required**, and must never claim a face scan occurred without device-specific proof. FIDO documents that biometric matching is local to the authenticator and the biometric template is not disclosed to the relying party.
