@@ -12,6 +12,7 @@ import base64
 import secrets
 import sqlite3
 from pathlib import Path
+from urllib.parse import urlsplit
 
 from webauthn import verify_authentication_response
 from webauthn.helpers.exceptions import InvalidAuthenticationResponse
@@ -47,10 +48,19 @@ class LocalOwnerDeviceVerifier:
     """
     def __init__(self, db_path: str | Path, *, rp_id: str, origin: str,
                  trusted: TrustedPasskey | None):
-        if (type(rp_id) is not str or not rp_id or type(origin) is not str
-                or not origin.endswith(rp_id) or
-                not (origin.startswith("https://") or origin=="http://localhost")):
+        if type(rp_id) is not str or not rp_id or type(origin) is not str:
             raise DeviceDenied("INVALID_RP_OR_ORIGIN")
+        try:
+            parsed=urlsplit(origin)
+            allowed_scheme=(parsed.scheme=="https" or
+                            (parsed.scheme=="http" and parsed.hostname=="localhost" and rp_id=="localhost"))
+            if (not allowed_scheme or parsed.hostname!=rp_id or
+                    parsed.username or parsed.password or parsed.path not in ("","/") or
+                    parsed.query or parsed.fragment or
+                    (parsed.port is not None and rp_id!="localhost" and parsed.port!=443)):
+                raise DeviceDenied("INVALID_RP_OR_ORIGIN")
+        except ValueError:
+            raise DeviceDenied("INVALID_RP_OR_ORIGIN") from None
         self.rp_id, self.origin, self.trusted = rp_id, origin, trusted
         self.path=Path(db_path)
         self.path.parent.mkdir(parents=True, exist_ok=True)
