@@ -1,0 +1,49 @@
+name: CYBER HAK | IMPERIAL EYE Public Source and Owner Device Gate
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'security/imperial_eye/**'
+      - '.github/workflows/imperial-eye.yml'
+  pull_request:
+    paths:
+      - 'security/imperial_eye/**'
+      - '.github/workflows/imperial-eye.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  eye-fail-closed:
+    runs-on: ubuntu-latest
+    timeout-minutes: 7
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ['3.11', '3.12']
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - name: Configure Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Compile source
+        run: python -m compileall -q security/imperial_eye
+      - name: Validate official public camera portal catalog
+        run: python -m unittest discover -s security/imperial_eye/tests -p 'test_*.py' -v
+      - name: Verify WebAuthn client JavaScript syntax
+        run: node --check security/imperial_eye/web/assets/eye.js
+      - name: Verify curated source count and data classification
+        run: |
+          python - <<'PY'
+          from security.imperial_eye.catalog import load_catalog
+          sources=load_catalog("security/imperial_eye/data/sources.json")
+          assert len(sources)==2, "Unexpected camera sources count"
+          assert all(x["record_kind"]=="official_publisher_portal" for x in sources)
+          print("IMPERIAL EYE: 2 official publisher portal entries validated, 0 private camera feeds.")
+          PY
