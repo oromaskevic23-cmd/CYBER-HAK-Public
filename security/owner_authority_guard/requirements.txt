@@ -1,0 +1,2 @@
+# Pinned Ed25519 verification dependency (FREE_ONLY local/CI).
+cryptography==50.0.2
