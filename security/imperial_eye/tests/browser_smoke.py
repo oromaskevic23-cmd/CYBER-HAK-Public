@@ -46,7 +46,7 @@ def main():
                     page=context.new_page()
                     try:
                         page.goto(f"http://127.0.0.1:{port}/web/",wait_until="networkidle")
-                        page.wait_for_function("document.querySelector('#count')?.textContent === '2'")
+                        page.locator("#count").filter(has_text="2").wait_for(timeout=10000)
                         assert page.locator(".source-card").count()==2
                         assert page.locator("video,iframe,img").count()==0
                         page.fill("#source-filter","Fintraffic")
@@ -56,9 +56,9 @@ def main():
                         page.fill("#source-filter","")
                         assert page.locator(".source-card").count()==2
                         page.locator("#owner-check").click()
-                        page.wait_for_function("document.querySelector('#passkey-status')?.textContent.includes('Access denied')")
+                        page.locator("#passkey-status").filter(has_text="Access denied").wait_for(timeout=10000)
                         page.locator("#owner-auth").click()
-                        page.wait_for_function("document.querySelector('#passkey-status')?.textContent.includes('Access denied')")
+                        page.locator("#passkey-status").filter(has_text="No verified Owner session").wait_for(timeout=10000)
                         assert page.locator(".source-card a").count()==2
                         assert len(requests)==0
                         screenshot=page.screenshot(full_page=True)
