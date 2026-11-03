@@ -1,10 +1,6 @@
 name: CYBER HAK | IMPERIAL EYE First Genuine Fintraffic API Read
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - '.github/workflows/imperial-eye-digitraffic-real-once.yml'
   workflow_dispatch:
 
 permissions:
