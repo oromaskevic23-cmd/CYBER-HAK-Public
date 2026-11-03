@@ -1,0 +1,2 @@
+# Pinned, BSD-3-Clause third-party WebAuthn relying-party verification library.
+webauthn==3.0.1
