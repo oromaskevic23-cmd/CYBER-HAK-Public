@@ -48,6 +48,11 @@ def main():
                         page.goto(f"http://127.0.0.1:{port}/web/",wait_until="networkidle")
                         page.locator("#count").filter(has_text="2").wait_for(timeout=10000)
                         assert page.locator(".source-card").count()==2
+                        page.locator("#camera-count").filter(has_text="12").wait_for(timeout=10000)
+                        assert page.locator(".camera-card").count()==12
+                        assert page.locator(".camera-card a").count()==12
+                        assert "816 VALID STATIONS" in page.locator("#station-total").inner_text()
+                        assert "CC BY 4.0" in page.locator(".camera-meta").inner_text()
                         assert page.locator("video,iframe,img").count()==0
                         page.fill("#source-filter","Fintraffic")
                         assert page.locator(".source-card").count()==1
@@ -67,6 +72,9 @@ def main():
                             "status":"CHROMIUM_UI_LOCAL_SMOKE_PASS",
                             "engine":browser.version,
                             "official_portal_entries_rendered":2,
+                            "actual_official_fintraffic_station_sample_cards":12,
+                            "sample_total_station_count_in_api":816,
+                            "source_license_attribution":"CC BY 4.0",
                             "filter_tested":True,
                             "owner_auth_without_backend":"DENIED",
                             "face_templates_collected":0,
