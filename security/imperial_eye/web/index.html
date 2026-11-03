@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; connect-src 'self'; img-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'; frame-src 'none'">
+  <title>IMPERIAL EYE — Public Observation Portal</title>
+  <meta name="description" content="Permission-first public observation source navigator and owner passkey architecture pilot.">
+  <link rel="stylesheet" href="assets/eye.css">
+  <script src="assets/eye.js" defer></script>
+</head>
+<body>
+<main class="shell">
+  <header class="top">
+    <div class="brand"><div class="emblem" aria-hidden="true"><span>◉</span></div><div><strong>IMPERIAL <i>EYE</i></strong><small>PUBLIC SOURCE INTELLIGENCE · SECURITY LAB</small></div></div>
+    <span class="lab"><b></b> SOURCE CATALOG PILOT</span>
+  </header>
+  <section class="hero">
+    <div><div class="eyebrow">ARCHITECTURE BEFORE IMPLEMENTATION · FREE_ONLY</div>
+      <h1>Observe the world.<br><em>Verify every source.</em></h1>
+      <p>An original, source-attributed world navigator. Official public camera portals only; zero private cameras, facial tracking or fabricated live status.</p>
+    </div>
+    <div class="hero-eye" aria-hidden="true"><div class="halo"></div><div class="iris"><span>IC</span></div></div>
+  </section>
+  <section class="metrics" aria-label="Catalog status">
+    <div><small>OFFICIAL PORTALS</small><strong id="count">—</strong></div>
+    <div><small>LIVE STREAMS VERIFIED</small><strong>0</strong></div>
+    <div><small>PRIVATE CAMERA ACCESS</small><strong class="protected">DISABLED</strong></div>
+    <div><small>OWNER BIOMETRIC DATA</small><strong class="protected">NOT COLLECTED</strong></div>
+  </section>
+  <div class="layout">
+    <section class="panel atlas">
+      <div class="panel-header"><div><span class="eyebrow">01 / PUBLIC OBSERVATION</span><h2>Source atlas</h2></div><span class="micro">REGION CENTERS · NOT CAMERA LOCATIONS</span></div>
+      <svg id="map" viewBox="0 0 1000 500" role="img" aria-label="World map with approximate regional centers for selected official traffic and weather camera portals">
+        <defs><pattern id="lines" width="50" height="50" patternUnits="userSpaceOnUse"><path d="M50 0H0V50" fill="none" stroke="#2e657b" stroke-width=".5"/></pattern></defs>
+        <rect width="1000" height="500" fill="#071b2d"/><rect width="1000" height="500" fill="url(#lines)" opacity=".6"/>
+        <path class="land" d="M70 113 118 65 192 48 244 72 274 117 254 158 224 177 214 207 179 222 155 187 128 174 110 130Z M224 231 257 242 296 290 313 344 296 421 270 452 235 409 221 351 202 292Z M415 100 469 71 543 73 579 95 632 75 698 71 768 104 830 112 902 166 873 225 827 236 780 214 730 244 678 207 633 200 618 240 576 240 552 210 516 208 477 177 440 179Z M472 220 527 223 565 260 560 319 523 386 487 358 470 303 450 266Z M783 326 849 316 889 339 912 372 887 408 825 393 786 363Z M353 88 378 82 386 112 363 135 347 117Z" />
+        <g id="markers"></g>
+        <text x="20" y="475" class="map-note">APPROXIMATE REGIONAL PIN POSITIONS · NO TRACKING</text>
+      </svg>
+      <div class="map-footer"><span><i class="dot"></i> Publisher portal</span><span>Click a source below to open the publisher's original site.</span></div>
+    </section>
+    <aside class="panel sources">
+      <div class="panel-header"><div><span class="eyebrow">02 / VERIFIED PUBLISHERS</span><h2>Official sources</h2></div></div>
+      <label for="source-filter">Find a publisher or region</label>
+      <input id="source-filter" type="search" placeholder="Search by region or publisher" autocomplete="off">
+      <div id="source-list" class="source-list" aria-live="polite"><p class="muted">Loading reviewed catalog…</p></div>
+      <p class="disclaimer">Publisher links only. We neither download images nor proxy, archive, discover or authenticate to camera systems. Availability is determined by each official publisher.</p>
+    </aside>
+  </div>
+  <section class="panel owner">
+    <div class="owner-copy"><span class="eyebrow">03 / OWNER IDENTITY · LOCAL BIOMETRICS</span><h2>Owner Passkey Guard</h2>
+    <p>Face ID, fingerprint or device PIN may verify the owner locally through WebAuthn. Raw face scans never go to IMPERIAL Core. An authenticated challenge and signed assertion must be verified server-side before any privileged action.</p>
+    <div id="passkey-status" role="status" aria-live="polite" class="auth-state">AUTHENTICATION BACKEND NOT DEPLOYED · ACCESS DENIED</div></div>
+    <button id="owner-check" type="button" aria-label="Inspect device passkey availability">Check device support</button>
+  </section>
+  <footer><strong>IMPERIAL Core · CYBER HAK</strong><span>Founder · Alexander Nikolaevich Romaskevich · RomaskevicH</span><span>Lab only · No cameras controlled · No biometric records stored</span></footer>
+</main>
+</body>
+</html>
