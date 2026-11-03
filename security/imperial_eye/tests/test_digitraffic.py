@@ -160,6 +160,34 @@ class DigitrafficTests(unittest.TestCase):
         self.assertFalse(result["owner_biometrics_collected"])
         self.assertTrue(result["sample_is_not_complete_catalog"])
 
+    def test_stored_real_source_snapshot_integrity(self):
+        from pathlib import Path
+        item=json.loads(Path("security/imperial_eye/data/digitraffic_sample.json").read_text())
+        self.assertEqual(item["schema_version"],1)
+        self.assertEqual(item["dataset"],"digitraffic_weathercam_official_metadata_sample")
+        self.assertEqual(item["api"],"https://tie.digitraffic.fi/api/weathercam/v1/stations")
+        self.assertEqual(item["license"],"CC BY 4.0")
+        self.assertEqual(item["sample_size"],12)
+        self.assertGreaterEqual(item["total_valid_stations_in_response"],12)
+        self.assertEqual(item["station_samples"][0]["station_id"],"C01503")
+        self.assertEqual(len(item["station_samples"]),12)
+        self.assertTrue(item["sample_is_not_complete_catalog"])
+        self.assertFalse(item["realtime_video"])
+        self.assertFalse(item["individual_image_freshness_verified"])
+        self.assertEqual(len(item["source_sha256"]),64)
+        self.assertEqual(len({x["station_id"] for x in item["station_samples"]}),12)
+        for row in item["station_samples"]:
+            self.assertEqual(row["record_kind"],"official_public_weathercam_metadata")
+            self.assertGreaterEqual(row["lat"],59)
+            self.assertLessEqual(row["lat"],71)
+            self.assertGreaterEqual(row["lon"],19)
+            self.assertLessEqual(row["lon"],33)
+            self.assertFalse(row["image_is_live_verified"])
+            if row["published_image_url"]:
+                self.assertRegex(row["published_image_url"],
+                    r"^https://weathercam\.digitraffic\.fi/C[0-9]{5,12}\.jpg$")
+
+
 
 if __name__=="__main__":
     unittest.main()
