@@ -1,10 +1,6 @@
 name: CYBER HAK | IMPERIAL EYE Real Chromium Interface Evidence
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - '.github/workflows/imperial-eye-browser-once.yml'
   workflow_dispatch:
 
 permissions:
