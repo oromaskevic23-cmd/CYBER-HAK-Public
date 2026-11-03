@@ -1,0 +1,43 @@
+{
+  "schema_version": 1,
+  "capabilities": {
+    "identity_tracking": false,
+    "face_search": false,
+    "private_camera_access": false,
+    "public_portal_links_only": true
+  },
+  "sources": [
+    {
+      "id": "ny-511-official",
+      "publisher": "New York State 511NY",
+      "publisher_host": "511ny.org",
+      "portal_url": "https://511ny.org/map",
+      "label": "Official traffic camera map",
+      "region": "New York State, USA",
+      "region_center_lat": 42.6,
+      "region_center_lon": -75.5,
+      "category": "traffic",
+      "permission_basis": "official_public_portal_link",
+      "source_documentation_url": "https://511ny.org/faq",
+      "last_reviewed": "2026-11-03",
+      "status": "PUBLISHER_PORTAL_VERIFIED",
+      "record_kind": "official_publisher_portal"
+    },
+    {
+      "id": "fi-fintraffic-official",
+      "publisher": "Fintraffic",
+      "publisher_host": "fintraffic.fi",
+      "portal_url": "https://www.fintraffic.fi/en/digitalservices/traffic-situation",
+      "label": "Official public road condition and camera information",
+      "region": "Finland",
+      "region_center_lat": 64,
+      "region_center_lon": 26,
+      "category": "weather",
+      "permission_basis": "official_public_portal_link",
+      "source_documentation_url": "https://www.fintraffic.fi/en/digitalservices/traffic-situation",
+      "last_reviewed": "2026-11-03",
+      "status": "PUBLISHER_PORTAL_VERIFIED",
+      "record_kind": "official_publisher_portal"
+    }
+  ]
+}
