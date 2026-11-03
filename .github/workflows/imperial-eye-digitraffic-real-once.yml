@@ -1,0 +1,39 @@
+name: CYBER HAK | IMPERIAL EYE First Genuine Fintraffic API Read
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/imperial-eye-digitraffic-real-once.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: imperial-eye-once-fintraffic-api
+  cancel-in-progress: false
+
+jobs:
+  single-official-api-probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 7
+    steps:
+      - name: Checkout repository without persistent credentials
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - name: Verify deterministic schema and privacy tests
+        run: python3 -m unittest discover -s security/imperial_eye/tests -p 'test_digitraffic.py' -v
+      - name: Read one genuine official Fintraffic weather-camera metadata page
+        run: python3 -m security.imperial_eye.digitraffic --live --limit 12
+      - name: Evidence boundaries
+        if: always()
+        run: |
+          {
+            echo '### IMPERIAL EYE public Fintraffic API probe'
+            echo '- Source: https://tie.digitraffic.fi/api/weathercam/v1/stations'
+            echo '- No credentials, private cameras, face processing, image downloads or remote server provisioning.'
+            echo '- The JSON printed above is official camera metadata sampled after validation, not verified livestreams.'
+            echo '- This job is a one-time experimental probe, not an always-on or billed server.'
+          } >> "$GITHUB_STEP_SUMMARY"
