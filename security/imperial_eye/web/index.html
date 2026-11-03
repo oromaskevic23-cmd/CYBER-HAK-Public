@@ -25,7 +25,7 @@
   </section>
   <section class="metrics" aria-label="Catalog status">
     <div><small>OFFICIAL PORTALS</small><strong id="count">—</strong></div>
-    <div><small>LIVE STREAMS VERIFIED</small><strong>0</strong></div>
+    <div><small>OFFICIAL STATION SAMPLE</small><strong id="camera-count">—</strong></div>
     <div><small>PRIVATE CAMERA ACCESS</small><strong class="protected">DISABLED</strong></div>
     <div><small>OWNER BIOMETRIC DATA</small><strong class="protected">NOT COLLECTED</strong></div>
   </section>
@@ -36,10 +36,10 @@
         <defs><pattern id="lines" width="50" height="50" patternUnits="userSpaceOnUse"><path d="M50 0H0V50" fill="none" stroke="#2e657b" stroke-width=".5"/></pattern></defs>
         <rect width="1000" height="500" fill="#071b2d"/><rect width="1000" height="500" fill="url(#lines)" opacity=".6"/>
         <path class="land" d="M70 113 118 65 192 48 244 72 274 117 254 158 224 177 214 207 179 222 155 187 128 174 110 130Z M224 231 257 242 296 290 313 344 296 421 270 452 235 409 221 351 202 292Z M415 100 469 71 543 73 579 95 632 75 698 71 768 104 830 112 902 166 873 225 827 236 780 214 730 244 678 207 633 200 618 240 576 240 552 210 516 208 477 177 440 179Z M472 220 527 223 565 260 560 319 523 386 487 358 470 303 450 266Z M783 326 849 316 889 339 912 372 887 408 825 393 786 363Z M353 88 378 82 386 112 363 135 347 117Z" />
-        <g id="markers"></g>
+        <g id="markers"></g><g id="weathercam-markers"></g>
         <text x="20" y="475" class="map-note">APPROXIMATE REGIONAL PIN POSITIONS · NO TRACKING</text>
       </svg>
-      <div class="map-footer"><span><i class="dot"></i> Publisher portal</span><span>Click a source below to open the publisher's original site.</span></div>
+      <div class="map-footer"><span><i class="dot"></i> Publisher regions · <i class="dot station-dot"></i> Official Finnish weathercam station coordinates</span><span>Schematic world outline; coordinates sourced from Fintraffic.</span></div>
     </section>
     <aside class="panel sources">
       <div class="panel-header"><div><span class="eyebrow">02 / VERIFIED PUBLISHERS</span><h2>Official sources</h2></div></div>
@@ -49,8 +49,14 @@
       <p class="disclaimer">Publisher links only. We neither download images nor proxy, archive, discover or authenticate to camera systems. Availability is determined by each official publisher.</p>
     </aside>
   </div>
+  <section class="panel camera-section">
+    <div class="panel-header"><div><span class="eyebrow">03 / DIRECT OFFICIAL API EVIDENCE</span><h2>Fintraffic public weathercam stations</h2></div><span class="micro" id="station-total">SOURCE NOT LOADED</span></div>
+    <p class="camera-intro">A limited sample of public Finnish road-weather camera metadata retrieved from the official Digitraffic API. These are published still-image links, <strong>not verified live video</strong>. No image is fetched automatically.</p>
+    <div class="camera-meta"><span id="camera-freshness">Checking signed source snapshot…</span><span>Fintraffic / Digitraffic · CC BY 4.0 · <a href="https://www.digitraffic.fi/en/road-traffic/" target="_blank" rel="noopener noreferrer">Official documentation</a></span></div>
+    <div id="camera-list" class="camera-grid" aria-live="polite"><p class="muted">Loading official station snapshot…</p></div>
+  </section>
   <section class="panel owner">
-    <div class="owner-copy"><span class="eyebrow">03 / OWNER IDENTITY · LOCAL BIOMETRICS</span><h2>Owner Passkey Guard</h2>
+    <div class="owner-copy"><span class="eyebrow">04 / OWNER IDENTITY · LOCAL BIOMETRICS</span><h2>Owner Passkey Guard</h2>
     <p>Face ID, fingerprint or device PIN may verify the owner locally through WebAuthn. Raw face scans never go to IMPERIAL Core. An authenticated challenge and signed assertion must be verified server-side before any privileged action.</p>
     <div id="passkey-status" role="status" aria-live="polite" class="auth-state">AUTHENTICATION BACKEND NOT DEPLOYED · ACCESS DENIED</div></div>
     <div class="owner-actions"><button id="owner-check" type="button" aria-label="Inspect device passkey availability">Check device support</button><button id="owner-auth" type="button" class="secondary" aria-label="Request device passkey verification from protected server">Authenticate with passkey</button></div>
