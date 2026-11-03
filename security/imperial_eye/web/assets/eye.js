@@ -200,5 +200,126 @@
       button.disabled = false;
     }
   });
+  /* Camera metadata is a stored, dated sample of an official API response.
+     It contains no private camera credentials, frames, face scans or AI results. */
+  const cameraHost = "weathercam.digitraffic.fi";
+  function verifiedPublisherStill(value) {
+    if (value === null) return null;
+    if (typeof value !== "string") return null;
+    try {
+      const url = new URL(value);
+      if (url.protocol !== "https:" || url.hostname !== cameraHost ||
+          url.username || url.password || url.search || url.hash || url.port ||
+          !/^\/C[0-9]{5,12}\.jpg$/.test(url.pathname)) return null;
+      return url.href;
+    } catch (_error) {
+      return null;
+    }
+  }
+
+  async function loadWeathercams() {
+    const list = $("camera-list");
+    try {
+      const response = await fetch("../data/digitraffic_sample.json", {
+        credentials:"omit", cache:"no-store", redirect:"error"
+      });
+      if (!response.ok) throw new Error("official source sample unavailable");
+      const data = await response.json();
+      if (!data || data.schema_version !== 1 ||
+          data.dataset !== "digitraffic_weathercam_official_metadata_sample" ||
+          data.publisher !== "Fintraffic / Digitraffic" ||
+          data.api !== "https://tie.digitraffic.fi/api/weathercam/v1/stations" ||
+          data.license !== "CC BY 4.0" ||
+          data.attribution !== "Source: Fintraffic / Digitraffic (CC BY 4.0)" ||
+          data.realtime_video !== false ||
+          data.individual_image_freshness_verified !== false ||
+          data.facial_recognition !== false ||
+          data.owner_biometrics_collected !== false ||
+          data.sample_is_not_complete_catalog !== true ||
+          !/^[0-9a-f]{64}$/.test(data.source_sha256 || "") ||
+          !Array.isArray(data.station_samples) ||
+          data.station_samples.length !== data.sample_size ||
+          data.station_samples.length > 50 ||
+          !Number.isSafeInteger(data.total_valid_stations_in_response) ||
+          data.total_valid_stations_in_response < data.sample_size) {
+        throw new Error("source evidence policy failure");
+      }
+      const when = Date.parse(data.fetched_at);
+      const elapsed = Date.now() - when;
+      if (!Number.isFinite(when) || elapsed < -60*60*1000) {
+        throw new Error("untrusted source observation time");
+      }
+      const fresh = elapsed >= 0 && elapsed <= 24 * 60 * 60 * 1000;
+      const encountered = new Set();
+      const valid = [];
+      for (const station of data.station_samples) {
+        if (!station || station.record_kind !== "official_public_weathercam_metadata" ||
+            station.image_is_live_verified !== false ||
+            typeof station.station_id !== "string" ||
+            !/^C[0-9]{5,12}$/.test(station.station_id) ||
+            encountered.has(station.station_id) ||
+            typeof station.label !== "string" || station.label.length > 110 ||
+            !Number.isFinite(station.lat) || !Number.isFinite(station.lon) ||
+            station.lat < 59 || station.lat > 71 ||
+            station.lon < 19 || station.lon > 33) {
+          throw new Error("untrusted source station");
+        }
+        if (station.published_image_url !== null && !verifiedPublisherStill(station.published_image_url)) {
+          throw new Error("untrusted image host or station URL");
+        }
+        encountered.add(station.station_id);
+        valid.push(station);
+      }
+      $("camera-count").textContent = String(valid.length);
+      $("station-total").textContent =
+        "SAMPLE " + valid.length + " / " + data.total_valid_stations_in_response + " VALID STATIONS IN API";
+      $("camera-freshness").textContent = "Source snapshot: " +
+        new Date(when).toISOString().replace(".000Z","Z") +
+        (fresh ? " · OBSERVATION WITHIN 24H" : " · STALE — RECHECK REQUIRED");
+      list.replaceChildren();
+      const markers = $("weathercam-markers");
+      markers.replaceChildren();
+      for (const station of valid) {
+        const card = element("article","camera-card");
+        card.append(element("span","cam-label",station.station_id));
+        card.append(element("h3","",station.label));
+        card.append(element("div","cam-location",
+          station.lat.toFixed(4) + "° N · " + station.lon.toFixed(4) + "° E · Finland"));
+        card.append(element("div","cam-status",
+          "Provider metadata: " + String(station.collection_status || "UNKNOWN").slice(0,40)));
+        const still = verifiedPublisherStill(station.published_image_url);
+        if (still && fresh) {
+          const link = element("a","", "Open publisher's still image");
+          link.href = still;
+          link.target = "_blank";
+          link.rel = "noopener noreferrer";
+          card.append(link);
+        } else {
+          card.append(element("div","cam-note",
+            fresh ? "No public image preset in this record." : "Snapshot expired. Image link withheld until revalidation."));
+        }
+        card.append(element("div","cam-note","Image availability and timestamp NOT independently verified."));
+        list.append(card);
+        const x = (station.lon + 180) / 360 * 1000;
+        const y = (90 - station.lat) / 180 * 500;
+        const marker = document.createElementNS(SVG_NS,"circle");
+        marker.setAttribute("cx",String(x)); marker.setAttribute("cy",String(y));
+        marker.setAttribute("r","3.5"); marker.setAttribute("class","weathercam-station");
+        const label = document.createElementNS(SVG_NS,"title");
+        label.textContent = station.station_id + " — official source location (metadata only)";
+        marker.append(label);
+        markers.append(marker);
+      }
+    } catch (_error) {
+      $("camera-count").textContent = "0";
+      $("station-total").textContent = "UNVERIFIED / BLOCKED";
+      $("camera-freshness").textContent = "No usable, source-validated weathercam snapshot";
+      list.replaceChildren(element("p","muted",
+        "Camera records are unavailable or failed validation. No untrusted camera URLs are shown."));
+      $("weathercam-markers").replaceChildren();
+    }
+  }
+
   load();
+  loadWeathercams();
 })();
