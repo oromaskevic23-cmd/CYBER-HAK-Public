@@ -115,5 +115,90 @@
       status.textContent = "Could not inspect device capability. Access denied.";
     }
   });
+  function bytesFromBase64Url(value) {
+    if (typeof value !== "string" || !/^[A-Za-z0-9_-]+$/.test(value)) {
+      throw new Error("Invalid authentication challenge format");
+    }
+    const binary = atob(value.replace(/-/g,"+").replace(/_/g,"/").padEnd(Math.ceil(value.length/4)*4,"="));
+    return Uint8Array.from(binary, c => c.charCodeAt(0));
+  }
+  function base64Url(buffer) {
+    const bytes = new Uint8Array(buffer);
+    let binary = "";
+    for (const b of bytes) binary += String.fromCharCode(b);
+    return btoa(binary).replace(/\\+/g,"-").replace(/\\//g,"_").replace(/=+$/,"");
+  }
+
+  $("owner-auth").addEventListener("click", async () => {
+    const status = $("passkey-status");
+    const button = $("owner-auth");
+    if (!window.isSecureContext || !navigator.credentials ||
+        typeof navigator.credentials.get !== "function") {
+      status.textContent = "Secure passkey authentication unavailable. Access denied.";
+      return;
+    }
+    button.disabled = true;
+    try {
+      // This MUST be an authenticated, same-origin private server. GitHub
+      // Pages is static: these routes are not deployed and fail closed.
+      const challengeResponse = await fetch("/api/imperial-eye/owner/challenge", {
+        method:"POST", credentials:"same-origin", redirect:"error",
+        headers:{"Accept":"application/json"}
+      });
+      if (!challengeResponse.ok) throw new Error("Protected challenge issuer unavailable");
+      const challenge = await challengeResponse.json();
+      if (!challenge || challenge.schema_version !== 1 ||
+          challenge.rp_id !== location.hostname ||
+          typeof challenge.challenge !== "string" ||
+          !Array.isArray(challenge.allow_credentials) || !challenge.allow_credentials.length) {
+        throw new Error("Server challenge rejected");
+      }
+      const credential = await navigator.credentials.get({
+        publicKey:{
+          challenge:bytesFromBase64Url(challenge.challenge),
+          rpId:challenge.rp_id,
+          allowCredentials:challenge.allow_credentials.map(x => ({
+            type:"public-key",id:bytesFromBase64Url(x.id)
+          })),
+          timeout:60000,
+          userVerification:"required"
+        }
+      });
+      if (!credential || credential.type !== "public-key") {
+        throw new Error("Authenticator verification unsuccessful");
+      }
+      const response = credential.response;
+      const proof = {
+        schema_version:1,
+        challenge_id:challenge.challenge_id,
+        id:credential.id,
+        raw_id:base64Url(credential.rawId),
+        type:credential.type,
+        response:{
+          authenticator_data:base64Url(response.authenticatorData),
+          client_data_json:base64Url(response.clientDataJSON),
+          signature:base64Url(response.signature),
+          user_handle:response.userHandle ? base64Url(response.userHandle) : null
+        }
+      };
+      const verifyResponse = await fetch("/api/imperial-eye/owner/assertion", {
+        method:"POST",credentials:"same-origin",redirect:"error",
+        headers:{"Content-Type":"application/json","Accept":"application/json"},
+        body:JSON.stringify(proof)
+      });
+      if (!verifyResponse.ok) throw new Error("Server assertion verification refused");
+      const decision = await verifyResponse.json();
+      // UI state is informative only. Actual privileged commands require
+      // their own server-side Guardian + Approval Gateway checks.
+      status.textContent = decision && decision.schema_version === 1 &&
+        decision.user_verified === true && decision.owner_authority_session === true
+        ? "Device verified by private server. Every privileged action still requires Owner Authority Guard and Approval Gateway."
+        : "Server did not grant Owner verification. Access denied.";
+    } catch (_error) {
+      status.textContent = "No verified Owner session: protected backend absent, expired, or declined. Access denied.";
+    } finally {
+      button.disabled = false;
+    }
+  });
   load();
 })();
