@@ -41,7 +41,8 @@ class EyeWebTests(unittest.TestCase):
         self.assertNotIn("rtsp://", self.html+self.js)
         self.assertNotIn("imageCapture", self.html+self.js)
         self.assertNotIn("video.src", self.js)
-        self.assertIn("Publisher portal", self.html)
+        self.assertIn("Publisher regions", self.html)
+        self.assertIn("No image is fetched automatically", self.html)
 
     def test_links_have_opener_protection(self):
         self.assertIn('a.rel = "noopener noreferrer"', self.js)
