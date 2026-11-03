@@ -29,5 +29,7 @@ jobs:
           python3 -m playwright install --with-deps chromium
       - name: Validate Chrome smoke test syntax
         run: python3 -m compileall -q security/imperial_eye/tests/browser_smoke.py
+      - name: Validate client-side strict CSP compatible JavaScript
+        run: node --check security/imperial_eye/web/assets/eye.js
       - name: Exercise actual local UI, source filter and denied Owner login
         run: python3 security/imperial_eye/tests/browser_smoke.py
