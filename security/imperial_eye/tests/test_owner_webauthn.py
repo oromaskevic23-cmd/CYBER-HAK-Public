@@ -156,6 +156,21 @@ class DeviceVerifierTests(unittest.TestCase):
                 Path(self.dir.name)/"x.sqlite",
                 rp_id="example.com",origin="https://attacker.invalid",trusted=self.trusted)
 
+    def test_lookalike_origins_and_userinfo_denied(self):
+        for deceptive_origin in (
+            "https://notlocalhost",
+            "http://attacker.localhost",
+            "https://user:secret@localhost",
+            "https://localhost/hidden-credentials",
+            "https://localhost.evil.example"
+        ):
+            with self.subTest(origin=deceptive_origin):
+                with self.assertRaises(DeviceDenied):
+                    LocalOwnerDeviceVerifier(
+                        Path(self.dir.name)/"fake.sqlite",
+                        rp_id="localhost",origin=deceptive_origin,trusted=self.trusted)
+
+
 
 if __name__=="__main__":
     unittest.main()
