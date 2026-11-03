@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "product": "IMPERIAL EYE",
+  "sprint": "v0.1",
+  "date": "2026-11-03",
+  "evidence": {
+    "owner": "oromaskevic23-cmd",
+    "repo": "CYBER-HAK-Public",
+    "catalog_ci": "https://github.com/oromaskevic23-cmd/CYBER-HAK-Public/actions/runs/41595285470",
+    "real_chromium_ci": "https://github.com/oromaskevic23-cmd/CYBER-HAK-Public/actions/runs/41595313923",
+    "chromium_ci_commit": "d478acba66bbe0dc6935f7acf45566af6ae5dbf5",
+    "chromium_engine": "156.0.8078.4",
+    "chromium_screenshot_sha256": "1b8831ab0c3b0aa9e32887eb1fb5df89095c32790a65c273aa29d84f4e51917d"
+  },
+  "official_source_portals": 2,
+  "production_camera_feeds": 0,
+  "source_policy_tests_passed_per_python_version": 18,
+  "python_versions": [
+    "3.11",
+    "3.12"
+  ],
+  "real_browser_smoke": "PASS",
+  "source_filter_verified": true,
+  "no_server_owner_auth": "DENIED",
+  "face_recognition_implemented": false,
+  "raw_biometrics_collected": false,
+  "remote_network_requests_in_e2e": 0,
+  "live_video_streams_played": 0,
+  "authenticated_owner_session": false,
+  "private_camera_access": false,
+  "public_github_pages_verified": false,
+  "independent_human_qa": false,
+  "copyright_note": "Original UI/code. Third party reference repository descriptions are not verified feed-count evidence.",
+  "next_gates": [
+    "User-authorized WebAuthn registration and protected relying-party server",
+    "Actual one-time challenge and cryptographic assertion verification bound to enrolled Owner credential",
+    "Official source-specific license and uptime evaluation before any feeds are integrated",
+    "Independent privacy and threat-model review before production"
+  ]
+}
