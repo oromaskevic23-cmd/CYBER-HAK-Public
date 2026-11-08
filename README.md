@@ -25,7 +25,7 @@ Defensive security and digital immune-system architecture for IMPERIAL Core.
 
 [Source and threat model](security/owner_authority_guard/README.md) · [Ed25519 verifier](security/owner_authority_guard/guard.py) · [external key trust check](security/owner_authority_guard/verify_cli.py) · [GitHub Actions proof](https://github.com/oromaskevic23-cmd/CYBER-HAK-Public/actions/runs/41590533895).
 
-**Verified:** 22/22 tests passed on Python 3.11 and Python 3.12 using real Ed25519 verification and ephemeral laboratory keys. The guard rejects agent impersonation of Founder, Owner, CEO and Chief Systems Architect, forbids technical transfer of root authority, checks external public-key trust, replay, expiry, canonical identity and signed scopes.
+**Verified:** 22/22 tests passed on Python 3.11 and Python 3.12 using real Ed25519 verification and ephemeral laboratory keys. The guard rejects agent impersonation of Founder, Owner and CEO, forbids technical transfer of root authority, checks external public-key trust, replay, expiry, canonical identity and signed scopes.
 
 **Not activated:** the real Owner private signing key has **not** been enrolled; GitHub Ruleset enforcement, external independent protected policy service and production HANTER/Guardian/Approval/NCA call-site integration remain unverified. CODEOWNERS does not independently enforce merge restrictions. The guard cannot prevent edits by a compromised repository administrator unless layered controls are active. No paid services were enabled. The private IMPERIAL Core governance record was updated without publishing keys or personal financial data.
 
