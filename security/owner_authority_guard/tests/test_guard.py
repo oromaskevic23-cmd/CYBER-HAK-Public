@@ -81,6 +81,10 @@ class OwnerAuthorityGuardTests(unittest.TestCase):
         with self.assertRaisesRegex(AuthorityDenied,"CANONICAL_OWNER_MISMATCH"):
             self.verify(self.signed(owner_roles=["Owner"]))
 
+    def test_retired_owner_role_is_denied_even_if_signed(self):
+        with self.assertRaisesRegex(AuthorityDenied, "CANONICAL_OWNER_MISMATCH"):
+            self.verify(self.signed(owner_roles=OWNER_ROLES + ["Chief Systems Architect"]))
+
     def test_hanter_and_nca_cannot_claim_human_owner(self):
         for actor in ("HANTER", "NCA", "ORCHESTRATOR"):
             with self.subTest(actor=actor):

@@ -1,6 +1,6 @@
 # CYBER HAK — Real Public Fleet Source Audit
 
-**Owner:** Alexander Nikolaevich Romaskevich (RomaskevicH), Founder • Owner • CEO • Chief Systems Architect of IMPERIAL Core.
+**Owner:** Alexander Nikolaevich Romaskevich (RomaskevicH), Founder • Owner • CEO of IMPERIAL Core.
 **Scope checkpoint:** 2 November 2026, 30 owner repositories recorded in connected GitHub: **23 PUBLIC + 7 PRIVATE**. The private seven are **not** checked out, scanned, or published by this workflow.
 **Scanner revision:** `c76109ed6404bcf6145e7d407b50990be403e85d`, pinned original CYBER HAK source scanner.
 **Workflow:** [fleet-public-security-audit.yml](../.github/workflows/fleet-public-security-audit.yml).

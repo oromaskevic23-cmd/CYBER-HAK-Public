@@ -20,7 +20,9 @@ from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
 
 OWNER_NAME = "Alexander Nikolaevich Romaskevich"
 OWNER_GITHUB = "oromaskevic23-cmd"
-OWNER_ROLES = ["Founder", "Owner", "CEO", "Chief Systems Architect"]
+OWNER_ROLES = ["Founder", "Owner", "CEO"]
+# Retired labels remain blocked for agent self-elevation, not as current Owner roles.
+LEGACY_ROOT_ROLE_CLAIMS = frozenset({"Chief Systems Architect"})
 DOMAIN = b"IMPERIAL-OWNER-AUTHORITY-GUARD-V1\x00"
 PERMITTED_ACTIONS = frozenset({
     "APPROVE_ARCHITECTURE_CHANGE", "AUTHORIZE_NCA_DEPLOYMENT",
@@ -60,7 +62,8 @@ def signed_bytes(payload: dict, key_id: str) -> bytes:
 
 def check_no_agent_takeover(actor_type: str, requested_role: str) -> None:
     """Never accept human-root roles from an AI worker or policy mutation."""
-    if requested_role in OWNER_ROLES or requested_role in FORBIDDEN_IN_CODE:
+    if (requested_role in OWNER_ROLES or requested_role in LEGACY_ROOT_ROLE_CLAIMS
+            or requested_role in FORBIDDEN_IN_CODE):
         raise AuthorityDenied("ROOT_AUTHORITY_IMMUTABLE_IN_CODE")
     if actor_type not in {"NCA", "ORCHESTRATOR", "HANTER", "HUMAN_OPERATOR"}:
         raise AuthorityDenied("UNRECOGNIZED_ACTOR_TYPE")

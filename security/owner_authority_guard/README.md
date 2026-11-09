@@ -1,14 +1,14 @@
 # IMPERIAL OWNER AUTHORITY GUARD — v1.0
 
 **Product:** CYBER HAK / IMPERIAL Core sovereign authorization boundary.  
-**Founder • Owner • CEO • Chief Systems Architect:** Alexander Nikolaevich Romaskevich (RomaskevicH).  
+**Founder • Owner • CEO:** Alexander Nikolaevich Romaskevich (RomaskevicH).  
 **Architecture:** Architect → HANTER → federated domain orchestrators → NCA; Root authority is **never delegated to an agent**.  
 **Budget:** FREE_ONLY. No paid products, domains, account upgrades or server deployments authorized.  
 **Verified implementation:** Ed25519 signature validation, strict canonical identity/roles, tamper rejection, fail-closed external public-key trust, signed scoped action checks, local atomic replay prevention and freeze. **This is a LAB security implementation, not an activated organization-wide lock.**
 
 ## What the mechanism prevents when actually enforced
 
-A normal NCA, HANTER route, orchestrator, skill/plugin update, model output, document or Git commit MUST NOT be accepted as proof that the author became **Founder, Owner, CEO or Chief Systems Architect**. An agent may execute a narrow authorized task but cannot amend the root authority, declare a new Owner, disable the owner's emergency stop or rotate the trust anchor.
+A normal NCA, HANTER route, orchestrator, skill/plugin update, model output, document or Git commit MUST NOT be accepted as proof that the author became **Founder, Owner or CEO**. An agent may execute a narrow authorized task but cannot amend the root authority, declare a new Owner, disable the owner's emergency stop or rotate the trust anchor.
 
 A valid signed scoped *task authorization* cannot change the canonical root identity: attempts such as `CHANGE_OWNER`, `TRANSFER_ROOT_AUTHORITY`, `REPLACE_ARCHITECT`, `ROTATE_ROOT_TRUST`, `DISABLE_OWNER_GUARD` and `REMOVE_OWNER_KILL_SWITCH` are structurally rejected. Root transfer and trust recovery are out-of-band governance/legal operations, never background agent operations.
 
@@ -16,7 +16,7 @@ A valid signed scoped *task authorization* cannot change the canonical root iden
 
 - **Name:** Alexander Nikolaevich Romaskevich
 - **GitHub account:** `oromaskevic23-cmd` (account label, NOT identity proof)
-- **Roles:** `Founder`, `Owner`, `CEO`, `Chief Systems Architect`
+- **Roles:** `Founder`, `Owner`, `CEO`
 - **Final Architectural Decision Authority:** the Architect.
 - **AI authorization:** all NCA, HANTER, ASTRA and other orchestrators are subordinate; no system-wide sudo-equivalent identity is created for an AI.
 

@@ -1,7 +1,7 @@
 # IMPERIAL EYE — Global Public Observation & Owner Identity Gate (v0.1)
 
 **Program:** IMPERIAL Core × CYBER HAK × Nano Core Agents  
-**Author / Final Architectural Decision Authority:** Alexander Nikolaevich Romaskevich (RomaskevicH), Founder • Owner • CEO • Chief Systems Architect.  
+**Author / Final Architectural Decision Authority:** Alexander Nikolaevich Romaskevich (RomaskevicH), Founder • Owner • CEO.  
 **Date:** 2026-11-03 · **Budget:** FREE_ONLY.  
 **Current maturity:** functioning offline-servable source atlas and policy/unit CI, NOT a global live video surveillance platform, running face-recognition server or deployed authenticated Owner login.
 

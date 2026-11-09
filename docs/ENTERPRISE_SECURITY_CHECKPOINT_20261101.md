@@ -1,7 +1,7 @@
 # CYBER HAK — Enterprise Security Checkpoint
 
 **Date:** 2026-11-01 (Europe/Kyiv)  
-**Architectural authority:** Alexander Nikolaevich Romaskevich (RomaskevicH), Founder • Owner • CEO • Chief Systems Architect of IMPERIAL Core.  
+**Architectural authority:** Alexander Nikolaevich Romaskevich (RomaskevicH), Founder • Owner • CEO of IMPERIAL Core.  
 **Classification:** PUBLIC technical status. No credentials, internal host inventories, secrets or private security incident details.  
 **Policy:** Architecture → Implementation → Evidence. Zero Trust. FREE_ONLY.
 
