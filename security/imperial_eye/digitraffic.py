@@ -8,6 +8,7 @@ from datetime import datetime, timezone
 import hashlib
 import http.client
 import json
+import math
 import re
 import ssl
 import zlib
@@ -58,6 +59,7 @@ def parse_station(feature: object) -> dict | None:
         return None
     lon, lat = point[:2]
     if (type(lat) not in (int,float) or type(lon) not in (int,float)
+            or not math.isfinite(lat) or not math.isfinite(lon)
             or not 59 <= lat <= 71 or not 19 <= lon <= 33):
         return None
     station_id = props.get("id") or feature.get("id")
