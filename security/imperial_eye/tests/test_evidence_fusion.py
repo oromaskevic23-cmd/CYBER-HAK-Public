@@ -173,5 +173,24 @@ class DigitrafficEnvelopeTests(unittest.TestCase):
             decompress_limited(raw,"gzip")
 
 
+class DigitrafficNonFiniteTests(unittest.TestCase):
+    def test_nonfinite_coordinates_are_rejected(self):
+        from security.imperial_eye.digitraffic import normalize
+        valid = {"type": "FeatureCollection", "features": [
+            {"type": "Feature",
+             "geometry": {"type": "Point", "coordinates": [24.5, 60.1]},
+             "properties": {"id": "C12345", "name": "Synthetic station", "presets": []}}
+        ]}
+        for invalid in (float("nan"), float("inf"), float("-inf")):
+            with self.subTest(invalid=invalid):
+                value = {"type": "FeatureCollection", "features": [
+                    {"type": "Feature",
+                     "geometry": {"type": "Point", "coordinates": [24.5, invalid]},
+                     "properties": {"id": "C12345", "name": "Synthetic station", "presets": []}}
+                ]}
+                with self.assertRaisesRegex(FeedDenied, "NO_VALID_OFFICIAL"):
+                    normalize(value, fetched_at="2026-11-10T10:00:00Z",
+                              source_sha256=HASH)
+
 if __name__ == "__main__":
     unittest.main()
