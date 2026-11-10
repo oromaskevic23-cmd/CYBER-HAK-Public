@@ -41,7 +41,8 @@ def decompress_limited(raw: bytes, encoding: str) -> bytes:
         data = decoder.decompress(raw, MAX_JSON + 1)
     except zlib.error:
         raise FeedDenied("INVALID_GZIP") from None
-    if len(data) > MAX_JSON or decoder.unconsumed_tail or not decoder.eof:
+    if (len(data) > MAX_JSON or decoder.unconsumed_tail or not decoder.eof
+            or decoder.unused_data):
         raise FeedDenied("DECOMPRESSED_RESPONSE_TOO_LARGE_OR_TRUNCATED")
     return data
 
