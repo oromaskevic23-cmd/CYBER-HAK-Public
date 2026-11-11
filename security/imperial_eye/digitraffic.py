@@ -8,6 +8,7 @@ from datetime import datetime, timezone
 import hashlib
 import http.client
 import json
+import math
 import re
 import ssl
 import zlib
@@ -41,7 +42,8 @@ def decompress_limited(raw: bytes, encoding: str) -> bytes:
         data = decoder.decompress(raw, MAX_JSON + 1)
     except zlib.error:
         raise FeedDenied("INVALID_GZIP") from None
-    if len(data) > MAX_JSON or decoder.unconsumed_tail or not decoder.eof:
+    if (len(data) > MAX_JSON or decoder.unconsumed_tail or not decoder.eof
+            or decoder.unused_data):
         raise FeedDenied("DECOMPRESSED_RESPONSE_TOO_LARGE_OR_TRUNCATED")
     return data
 
@@ -57,6 +59,7 @@ def parse_station(feature: object) -> dict | None:
         return None
     lon, lat = point[:2]
     if (type(lat) not in (int,float) or type(lon) not in (int,float)
+            or not math.isfinite(lat) or not math.isfinite(lon)
             or not 59 <= lat <= 71 or not 19 <= lon <= 33):
         return None
     station_id = props.get("id") or feature.get("id")
