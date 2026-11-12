@@ -6,19 +6,28 @@
 
 A read-only scan of one authorized Git repository at an agreed commit, using the original CYBER HAK source-policy scanner. Six checks cover:
 
-- Private-key-shaped material and likely access-token patterns.
-- Overbroad GitHub Actions permissions (`write-all`).
-- GitHub Actions references that are not pinned to immutable revisions.
-- `pull_request_target` trust-boundary signals.
-- External downloader scripts piped directly into a shell.
+- `CHAK-SECRET-001`: private-key-shaped material.
+- `CHAK-SECRET-002`: likely access-token patterns.
+- `CHAK-CI-001`: overbroad GitHub Actions permissions (`write-all`).
+- `CHAK-CI-002`: GitHub Actions references not pinned to immutable revisions.
+- `CHAK-CI-003`: `pull_request_target` trust-boundary signals.
+- `CHAK-CI-004`: external downloader scripts piped directly into a shell.
 
 ## What you receive
 
-- SHA-256-bound JSON report: source revision, scanned file inventory, policy indicators, excluded scope and report digest.
+- SHA-256-bound JSON report: source revision, scanned file counts, source-manifest digest, policy indicators, excluded scope and report digest.
 - Short human-readable summary of findings, limitations and suggested next steps; indicators are not automatically confirmed vulnerabilities.
 - A 30-minute discussion of the report and remediation priorities.
 
-The target code is not executed, built or deployed. Do not send production credentials, customer data or private source in a public issue or email attachment. Any private repository requires an agreed, access-controlled review environment before work starts.
+The target code is not executed, built or deployed. Do not send production credentials, customer data or private source in a public issue or email attachment. **Private repository option: self-run.** Subject to separate written permission under the existing proprietary license, run the reviewed scanner locally on a clean, dedicated checkout of the agreed revision. The scanner reads tracked working-tree files, so the checkout must match the agreed commit; no target code is executed and no scanner network access is used. Keep the source inside your perimeter. Review the generated JSON before sharing it: it includes file paths, line numbers, fingerprints, commit IDs and other metadata, but not matched secret values or raw source lines. Agree a secure transfer channel or sanitized aggregate; a redacted derivative must be labeled and hashed separately. A self-reported digest is not an independent attestation. An NDA can be discussed on request; no NDA or license grant is established by this page.
+
+With a separately authorized, reviewed copy of the scanner and Node.js 22+ / Git, run from a trusted environment:
+
+```sh
+node /absolute/path/to/source-security-gate.mjs --root /absolute/path/to/clean-target-checkout --report /absolute/private/path/report.json
+```
+
+Keep the report outside the target checkout. Do not run a target repository's npm scripts; the scanner's own `npm run security:scan` defaults to scanning its own checkout.
 
 **This is not a penetration test, comprehensive security audit, independent certification, compliance attestation, dependency scan or guarantee that software is secure.** It does not cover runtime systems, commit history, all secret formats or unscanned files. No changes to the customer's repository are authorized by this service.
 
@@ -48,7 +57,7 @@ The six credential-marker matches were reported as fixtures or defensive asserti
 
 ## Request a 20-minute scope discussion
 
-Email [oromaskevic23@gmail.com](mailto:oromaskevic23@gmail.com?subject=CYBER%20HAK%20Express%20scope%20discussion) with your organization, a non-confidential description of the repository and the checks you care about. Do not share secrets or private customer information.
+Email [oromaskevic23@gmail.com](mailto:oromaskevic23@gmail.com?subject=CYBER%20HAK%20Express%20scope%20discussion) with your organization, a non-confidential description of the repository and the checks you care about. Do not share secrets or private customer information. We aim to respond within one business day; this is a response target, not a guaranteed SLA.
 
 Alexander Romaskevich (RomaskevicH) — Founder, Owner and CEO, IMPERIAL Core.
 
