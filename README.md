@@ -12,6 +12,8 @@
 
 Defensive security and digital immune-system architecture for IMPERIAL Core.
 
+**Security review inquiries:** [CYBER HAK Express — scope, introductory pricing and evidence sample](docs/CYBER_HAK_EXPRESS.md).
+
 [Enterprise Security Checkpoint — 1 November 2026](docs/ENTERPRISE_SECURITY_CHECKPOINT_20261101.md) — confirmed regression evidence, limitations and next controlled security gates.
 
 
