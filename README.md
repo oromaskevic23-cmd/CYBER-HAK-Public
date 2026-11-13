@@ -1,14 +1,14 @@
 # CYBER HAK
 
 <p align="center">
+  <img src="assets/branding/cyber-hak-command-center.webp" alt="CYBER HAK — Digital Immune System, IMPERIAL Core cybersecurity command center" width="100%" />
+</p>
+
+<p align="center">
   <img src="https://raw.githubusercontent.com/oromaskevic23-cmd/oromaskevic23-cmd/main/assets/alexander-romaskevich-portrait-20261110.jpg" alt="Alexander Nikolaevich Romaskevich, Founder, Owner and CEO of IMPERIAL Core" width="160" />
 </p>
 
 **Project creator & founding architect:** **Alexander Nikolaevich Romaskevich** (Alexander Nikolaevich Romaskevich · RomaskevicH). [Authorship & contribution provenance](AUTHORS.md).
-
-<p align="center">
-  <img src="assets/branding/cyber-hak-command-center.webp" alt="CYBER HAK — Digital Immune System, IMPERIAL Core cybersecurity command center" width="100%" />
-</p>
 
 Defensive security and digital immune-system architecture for IMPERIAL Core.
 
